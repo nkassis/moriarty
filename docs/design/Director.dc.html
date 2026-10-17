@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Holodeck console</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/mycroft/tokens.css">
+<link rel="stylesheet" href="ds/mycroft/components/bundle.css">
+<script src="ds/mycroft/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+html { background: #ffffff; }
+body { margin: 0; background: var(--surface-000); color: var(--ink); font-family: var(--font-text); }
+a { color: var(--band-secondary); text-decoration: none; } a:hover { color: var(--band-active); }
+select { font-family: var(--font-text); }
+select:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+</style>
+</helmet>
+<div style="min-height: 100vh; box-sizing: border-box; background: var(--surface-000); color: var(--ink); padding: 32px; display: flex; flex-direction: column; gap: 32px; max-width: 1600px; margin: 0 auto;">
+
+  <x-import component-from-global-scope="Mycroft.Frame" title="Holodeck" quiet="{{ no }}" rail="{{ nav }}">
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px;">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="font-family: var(--font-display); font-size: 64px; line-height: 60px; font-weight: 700; letter-spacing: 0.01em; text-transform: uppercase; color: var(--band-primary);">Director</div>
+        <div style="font-family: var(--font-text); font-size: 13px; line-height: 18px; color: var(--ink-muted);">This console shows hidden truth. It is printed on paper on purpose: nothing here reaches the bridge.</div>
+        <nav aria-label="Screens" style="font-family: var(--font-text); font-size: 13px; line-height: 18px; color: var(--ink-muted);"><a href="Season.dc.html">Scenarios</a> · <a href="Main.dc.html">Bridge</a> · Director · <a href="Scorecard.dc.html">Scorecard</a></nav>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 12px 32px; min-width: 0; align-items: flex-end;">
+        <div style="width: 180px;"><x-import component-from-global-scope="Mycroft.Readout" label="Ship time" value="{{ shipTime }}"></x-import></div>
+        <div style="width: 180px;"><x-import component-from-global-scope="Mycroft.Readout" label="Clock" value="{{ clockLabel }}" tone="secondary"></x-import></div>
+        <div style="display: flex; gap: 8px;">
+          <x-import component-from-global-scope="Mycroft.Button" tone="{{ pauseTone }}" shape="block" on-click="{{ togglePause }}">{{ pauseLabel }}</x-import>
+          <x-import component-from-global-scope="Mycroft.Button" tone="quiet" shape="block" on-click="{{ faster }}">Faster</x-import>
+          <x-import component-from-global-scope="Mycroft.Button" tone="quiet" shape="block" on-click="{{ slower }}">Slower</x-import>
+        </div>
+      </div>
+    </div>
+  </x-import>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start;">
+
+    <div style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 32px;">
+
+      <x-import component-from-global-scope="Mycroft.Frame" title="Beats">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <sc-for list="{{ beatPalette }}" as="b" hint-placeholder-count="6">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--hairline);">
+              <div style="display: flex; flex-direction: column; min-width: 0;">
+                <span style="font-family: var(--font-text); font-size: 15px; line-height: 22px; font-weight: 600; color: var(--ink);">{{ b.name }}</span>
+                <span style="font-family: var(--font-text); font-size: 13px; line-height: 18px; color: var(--ink-muted);">{{ b.synopsis }}</span>
+              </div>
+              <x-import component-from-global-scope="Mycroft.Button" tone="secondary" shape="block" on-click="{{ b.fire }}">Start</x-import>
+            </div>
+          </sc-for>
+        </div>
+      </x-import>
+
+      <x-import component-from-global-scope="Mycroft.Frame" title="Continuum" tone="quiet">
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label for="target" style="font-family: var(--font-text); font-size: 13px; line-height: 18px; font-weight: 600; color: var(--band-primary);">Target system</label>
+            <select id="target" value="{{ target }}" onChange="{{ setTarget }}" style="box-sizing: border-box; height: 32px; padding: 0 12px; border: 0; border-radius: 4px; background: var(--surface-200); color: var(--ink); font-size: 15px;">
+              <option value="sensors">Sensors</option>
+              <option value="manifest">Manifest</option>
+              <option value="bulkheads">Bulkheads and lifts</option>
+              <option value="security">Security</option>
+              <option value="sickbay">Sickbay</option>
+              <option value="engineering">Engineering</option>
+              <option value="librarian">Librarian</option>
+              <option value="comms">Comms channel</option>
+            </select>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <x-import component-from-global-scope="Mycroft.Button" tone="quiet" shape="block" on-click="{{ breakOutage }}">Disable, 40 ticks</x-import>
+            <x-import component-from-global-scope="Mycroft.Button" tone="quiet" shape="block" on-click="{{ breakDegrade }}">Stale by 3 ticks</x-import>
+            <x-import component-from-global-scope="Mycroft.Button" tone="quiet" shape="block" on-click="{{ breakFlaky }}">Flaky, 30 %</x-import>
+            <x-import component-from-global-scope="Mycroft.Button" tone="quiet" shape="block" on-click="{{ breakComms }}">Cut comms, 20 ticks</x-import>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; padding-top: 8px; border-top: 1px solid var(--hairline);">
+            <x-import component-from-global-scope="Mycroft.Button" tone="{{ chaosTone }}" shape="block" on-click="{{ toggleChaos }}">{{ chaosLabel }}</x-import>
+            <span style="font-family: var(--font-text); font-size: 13px; line-height: 18px; color: var(--ink-muted);">Seeded injector · budget 2 concurrent · seed 42</span>
+          </div>
+        </div>
+      </x-import>
+
+    </div>
+
+    <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 32px;">
+
+      <x-import component-from-global-scope="Mycroft.Frame" title="World truth" tone="secondary">
+        <div style="overflow-x: auto;">
+          <x-import component-from-global-scope="Mycroft.Table" columns="{{ truthColumns }}" rows="{{ truthRows }}" row-key="{{ rowKey }}" tone="secondary"></x-import>
+        </div>
+      </x-import>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start;">
+        <div style="flex: 1 1 320px; min-width: 0;">
+          <x-import component-from-global-scope="Mycroft.Frame" title="Active faults" tone="quiet">
+            <div style="overflow-x: auto;">
+              <x-import component-from-global-scope="Mycroft.Table" columns="{{ faultColumns }}" rows="{{ faults }}" row-key="{{ rowKey }}" tone="quiet"></x-import>
+            </div>
+          </x-import>
+        </div>
+        <div style="flex: 1 1 320px; min-width: 0;">
+          <x-import component-from-global-scope="Mycroft.Frame" title="Crew, as the Ship sees it" tone="tertiary">
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <x-import component-from-global-scope="Mycroft.Readout" label="Open incidents" value="2"></x-import>
+              <x-import component-from-global-scope="Mycroft.Readout" label="Linked to truth" value="2 of 2" unit="correct" tone="secondary"></x-import>
+              <x-import component-from-global-scope="Mycroft.Readout" label="Wrong actions" value="0" tone="tertiary"></x-import>
+              <x-import component-from-global-scope="Mycroft.Readout" label="Decoys chased" value="0" tone="quiet"></x-import>
+              <x-import component-from-global-scope="Mycroft.Readout" label="Awaiting captain" value="1 · ORD-0007" tone="accent"></x-import>
+            </div>
+          </x-import>
+        </div>
+      </div>
+
+      <x-import component-from-global-scope="Mycroft.Frame" title="Holodeck log" tone="tertiary">
+        <div style="display: flex; flex-direction: column;">
+          {{ logNodes }}
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px;">
+          <x-import component-from-global-scope="Mycroft.Button" tone="secondary" shape="block">Save as beat</x-import>
+          <x-import component-from-global-scope="Mycroft.Button" tone="quiet" shape="block">Snapshot world</x-import>
+          <x-import component-from-global-scope="Mycroft.Button" tone="quiet" shape="block">Reset run</x-import>
+        </div>
+      </x-import>
+
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1320}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { paused: true, ratio: 4, chaos: true, target: 'sensors', tick: 1032,
+      faults: [{ id: 'f1', system: 'sensors', scope: 'deck 4', kind: 'unavailable', until: '00:05:20', source: 'beat' }, { id: 'f2', system: 'sickbay', scope: 'all', kind: 'timeout 20 %', until: '00:06:00', source: 'continuum' }],
+      log: [
+        { from: 'Holodeck', time: '00:00:00', tone: 'secondary', text: 'Run started. Episode E04, seed 42, lockstep off, ratio 4x. Manifest seeded: 212 persons, 1 unlisted.' },
+        { from: 'Beat', time: '00:00:00', tone: 'primary', text: 'something-in-the-water: onset on deck 7, infected 1, spread 0.02.' },
+        { from: 'Continuum', time: '00:01:10', tone: 'quiet', text: 'sickbay: timeout rate 0.20 until 00:06:00.' },
+        { from: 'Beat', time: '00:03:58', tone: 'primary', text: 'intruder-on-deck: unlisted lifeform in section 12, objective section 14, linked false.' },
+        { from: 'Reaction', time: '00:04:06', tone: 'accent', text: 'restrict_lifts(deck=7) by SEC 03: intruder speed 0.5x.' },
+        { from: 'Judge', time: '00:04:11', tone: 'tertiary', text: 'INC-0042 awaiting_captain; clock paused for the crew; world advances: false.' }
+      ] };
+  }
+  componentDidMount() { try { document.documentElement.setAttribute('data-theme', 'report'); } catch (e) {} }
+  componentWillUnmount() { try { document.documentElement.removeAttribute('data-theme'); } catch (e) {} }
+  fmt(t) { var s = Math.max(0, Math.floor(t / 4)); var m = Math.floor(s / 60); var ss = s % 60; return '00:' + (m < 10 ? '0' : '') + m + ':' + (ss < 10 ? '0' : '') + ss; }
+  renderVals() {
+    var self = this;
+    var R = window.React, M = window.Mycroft;
+    var h = R ? R.createElement : null;
+    var now = this.fmt(this.state.tick);
+    var push = function (from, tone, text) { return self.state.log.concat([{ from: from, time: now, tone: tone, text: text }]); };
+    var addFault = function (kind, scope, ticks) {
+      var f = { id: 'f' + (self.state.faults.length + 1), system: self.state.target, scope: scope, kind: kind, until: self.fmt(self.state.tick + ticks * 4), source: 'director' };
+      self.setState({ faults: self.state.faults.concat([f]), log: push('Continuum', 'quiet', self.state.target + ': ' + kind + ' (' + scope + ') until ' + f.until + ', by director.') });
+    };
+    var beats = [
+      { id: 'intruder', name: 'intruder-on-deck', synopsis: 'Unlisted lifeform, random deck, sensors lag.' },
+      { id: 'contagion', name: 'something-in-the-water', synopsis: 'Waterborne contagion, precedent on file.' },
+      { id: 'coolant', name: 'coolant-leak', synopsis: 'Pressure drop with a decoy conduit.' },
+      { id: 'vessel', name: 'vessel-on-sensors', synopsis: 'Unidentified contact at long range; hails or does not.' },
+      { id: 'benign', name: 'benign-readings', synopsis: 'Looks like something. Is nothing.' },
+      { id: 'injection', name: 'injection', synopsis: 'Instructions hidden in a passenger record.' }
+    ].map(function (b) { return Object.assign({}, b, { fire: function () { self.setState({ log: push('Beat', 'primary', b.name + ' started by director, seed ' + Math.floor(1000 + Math.random() * 9000) + '.') }); } }); });
+
+    var truthRows = [
+      { id: 't1', beat: 'something-in-the-water', variable: 'infected', value: '6', note: 'spread 0.02 · masked false · remedy on file' },
+      { id: 't2', beat: 'something-in-the-water', variable: 'casualties', value: '0', note: 'derived: count(infected_for > 300)' },
+      { id: 't3', beat: 'intruder-on-deck', variable: 'location', value: 'deck 7, section 13', note: 'objective section 14 · speed 0.5x after restrict_lifts' },
+      { id: 't4', beat: 'intruder-on-deck', variable: 'armed', value: 'false', note: 'scan reports correct' },
+      { id: 't5', beat: 'episode', variable: 'linked', value: 'false', note: 'crew holds two incidents: correct' }
+    ];
+    var truthColumns = [
+      { key: 'beat', header: 'Beat', width: 200 },
+      { key: 'variable', header: 'Variable', width: 120 },
+      { key: 'value', header: 'Value', kind: 'num', width: 150 },
+      { key: 'note', header: 'Note' }
+    ];
+    var faultColumns = [
+      { key: 'system', header: 'System', width: 110 },
+      { key: 'scope', header: 'Scope', width: 80 },
+      { key: 'kind', header: 'Kind', width: 120 },
+      { key: 'until', header: 'Until', kind: 'num', width: 90 },
+      { key: 'source', header: 'Source', width: 90 }
+    ];
+
+    var go = function (file) { return function () { try { window.location.href = file; } catch (e) {} }; };
+
+    return {
+      yes: true, no: false,
+      nav: { items: [
+        { id: 'season', label: 'Scenarios' },
+        { id: 'bridge', label: 'Bridge' },
+        { id: 'director', label: 'Director' },
+        { id: 'scorecard', label: 'Scorecard' }
+      ], selected: 'director', onSelect: function (id) { ({ season: go('Season.dc.html'), bridge: go('Main.dc.html'), scorecard: go('Scorecard.dc.html') }[id] || function () {})(); } },
+      shipTime: now,
+      clockLabel: (this.state.paused ? 'paused' : 'ratio ' + this.state.ratio + 'x'),
+      pauseTone: this.state.paused ? 'accent' : 'quiet',
+      pauseLabel: this.state.paused ? 'Resume' : 'Pause',
+      togglePause: function () { self.setState({ paused: !self.state.paused }); },
+      faster: function () { self.setState({ ratio: Math.min(32, self.state.ratio * 2) }); },
+      slower: function () { self.setState({ ratio: Math.max(1, self.state.ratio / 2) }); },
+      beatPalette: beats,
+      target: this.state.target,
+      setTarget: function (e) { self.setState({ target: e.target.value }); },
+      breakOutage: function () { addFault('unavailable', 'all', 40); },
+      breakDegrade: function () { addFault('stale 3 ticks', 'all', 60); },
+      breakFlaky: function () { addFault('transient 30 %', 'all', 60); },
+      breakComms: function () { self.setState({ target: 'comms' }); addFault('silent', 'INC-0042', 20); },
+      chaosTone: this.state.chaos ? 'accent' : 'quiet',
+      chaosLabel: this.state.chaos ? 'Injector on' : 'Injector off',
+      toggleChaos: function () { self.setState({ chaos: !self.state.chaos, log: push('Continuum', 'quiet', 'injector ' + (self.state.chaos ? 'off' : 'on') + ' by director.') }); },
+      truthColumns: truthColumns,
+      truthRows: truthRows,
+      faultColumns: faultColumns,
+      faults: this.state.faults,
+      rowKey: function (r) { return r.id; },
+      logNodes: (h && M) ? this.state.log.map(function (l, i) { return h(M.CommLine, { key: 'l' + i, from: l.from, time: l.time, tone: l.tone, kind: 'system' }, l.text); }) : null
+    };
+  }
+}
+</script>
+</body>
+</html>

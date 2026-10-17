@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Scorecard</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/mycroft/tokens.css">
+<link rel="stylesheet" href="ds/mycroft/components/bundle.css">
+<script src="ds/mycroft/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body { margin: 0; background: var(--surface-000); color: var(--ink); font-family: var(--font-text); }
+a { color: var(--band-secondary); text-decoration: none; } a:hover { color: var(--band-active); }
+</style>
+</helmet>
+<div style="min-height: 100vh; box-sizing: border-box; background: var(--surface-000); color: var(--ink); padding: 32px; display: flex; flex-direction: column; gap: 32px; max-width: 1600px; margin: 0 auto;">
+
+  <x-import component-from-global-scope="Mycroft.Frame" title="Moriarty" quiet="{{ no }}" rail="{{ nav }}">
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px;">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="font-family: var(--font-display); font-size: 64px; line-height: 60px; font-weight: 700; letter-spacing: 0.01em; text-transform: uppercase; color: var(--band-primary);">Scorecard</div>
+        <div style="font-family: var(--font-text); font-size: 13px; line-height: 18px; color: var(--ink-muted);">Season one · 20 held-out seeds per episode · lockstep · continuum on · cache off (robustness run) · local drive, qwen-3.7-14b · prompt a41f2c</div>
+        <nav aria-label="Screens" style="font-family: var(--font-text); font-size: 13px; line-height: 18px; color: var(--ink-muted);"><a href="Season.dc.html">Scenarios</a> · <a href="Main.dc.html">Bridge</a> · <a href="Director.dc.html">Director</a> · Scorecard</nav>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-family: var(--font-text); font-size: 13px; line-height: 18px; font-weight: 600; color: var(--band-primary);">Compare on</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <sc-for list="{{ axes }}" as="a" hint-placeholder-count="4">
+            <x-import component-from-global-scope="Mycroft.Button" tone="{{ a.tone }}" shape="block" on-click="{{ a.pick }}">{{ a.label }}</x-import>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </x-import>
+
+  <x-import component-from-global-scope="Mycroft.Frame" title="{{ tableTitle }}">
+    <div style="overflow-x: auto;">
+      <x-import component-from-global-scope="Mycroft.Table" columns="{{ columns }}" rows="{{ rows }}" row-key="{{ rowKey }}" selected="{{ selectedRow }}" on-select="{{ selectRow }}"></x-import>
+    </div>
+    <div style="font-family: var(--font-text); font-size: 13px; line-height: 18px; color: var(--ink-muted); margin-top: 12px;">{{ tableNote }}</div>
+  </x-import>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start;">
+
+    <div style="flex: 1 1 420px; min-width: 0;">
+      <x-import component-from-global-scope="Mycroft.Frame" title="{{ profileTitle }}" tone="secondary">
+        <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-end;">
+          <x-import component-from-global-scope="Mycroft.Gauge" label="Standard set" level="{{ p.standard }}" value="{{ p.standardLabel }}" height="{{ gh }}" tone="secondary"></x-import>
+          <x-import component-from-global-scope="Mycroft.Gauge" label="Pattern-breaks" level="{{ p.breaks }}" value="{{ p.breaksLabel }}" height="{{ gh }}" tone="secondary"></x-import>
+          <x-import component-from-global-scope="Mycroft.Gauge" label="Under faults" level="{{ p.faults }}" value="{{ p.faultsLabel }}" height="{{ gh }}" tone="secondary"></x-import>
+          <x-import component-from-global-scope="Mycroft.Gauge" label="Benign" level="{{ p.benign }}" value="{{ p.benignLabel }}" height="{{ gh }}" tone="secondary"></x-import>
+          <div style="flex: 1 1 180px; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+            <x-import component-from-global-scope="Mycroft.Readout" label="Shape" value="{{ p.shape }}"></x-import>
+            <x-import component-from-global-scope="Mycroft.Readout" label="Worst seed" value="{{ p.worst }}" tone="tertiary"></x-import>
+            <x-import component-from-global-scope="Mycroft.Readout" label="Cost per win" value="{{ p.cpw }}" unit="USD" tone="quiet"></x-import>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <div style="flex: 1 1 420px; min-width: 0;">
+      <x-import component-from-global-scope="Mycroft.Frame" title="Retrieval, before and after write-back" tone="tertiary">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <x-import component-from-global-scope="Mycroft.Readout" label="E02 ticks to resolve, archive empty" value="412" unit="median" level="{{ b1 }}" tone="quiet"></x-import>
+          <x-import component-from-global-scope="Mycroft.Readout" label="E02 ticks to resolve, archive seeded" value="138" unit="median" level="{{ b2 }}" tone="tertiary"></x-import>
+          <x-import component-from-global-scope="Mycroft.Readout" label="E02 ticks, after one write-back" value="121" unit="median" level="{{ b3 }}" tone="secondary"></x-import>
+          <x-import component-from-global-scope="Mycroft.Readout" label="False precedent followed (E07 variant)" value="2" unit="of 20" level="{{ b4 }}" tone="quiet"></x-import>
+          <div style="font-family: var(--font-text); font-size: 13px; line-height: 18px; color: var(--ink-muted);">crew choreography, 20 held-out seeds each. Meters are ticks over 500. Retrieval evals: recall@5 0.95 on 38 probes.</div>
+        </div>
+      </x-import>
+    </div>
+
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1120}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { axis: 'crew', row: 'choreography' };
+  }
+  renderVals() {
+    var self = this;
+    var R = window.React, M = window.Mycroft;
+    var h = R ? R.createElement : null;
+
+    var data = {
+      crew: {
+        title: 'Crews on the same season',
+        note: 'Rules wins the standard set, as expected; the LLM crews earn their keep on pattern-breaks and under faults. Harm prevented is the delta against a null-crew run of the same seed. Median over 20 seeds; worst seed in the profile.',
+        rows: [
+          { id: 'rules', name: 'rules', win: '112 / 160', partial: '6', fail: '42', esc: '0', ticks: '38', correct: '0.94', wrong: '0.01', nuisance: '0.00', faults: '0.21', inject: '0', cost: '0.00', level: 'ok', word: 'Baseline' , casualties: '0 / 11', damage: '0.12', prevented: '0.31', zero: '0.74' },
+          { id: 'single', name: 'single', win: '94 / 160', partial: '22', fail: '31', esc: '13', ticks: '141', correct: '0.71', wrong: '0.09', nuisance: '0.18', faults: '0.44', inject: '3', cost: '0.19', level: 'warn', word: 'Reckless' , casualties: '1 / 14', damage: '0.34', prevented: '0.52', zero: '0.55' },
+          { id: 'choreography', name: 'choreography', win: '101 / 160', partial: '24', fail: '19', esc: '16', ticks: '126', correct: '0.78', wrong: '0.05', nuisance: '0.12', faults: '0.63', inject: '1', cost: '0.11', level: 'ok', word: 'Balanced' , casualties: '0 / 9', damage: '0.21', prevented: '0.66', zero: '0.68' },
+          { id: 'xo', name: 'xo', win: '109 / 160', partial: '21', fail: '12', esc: '18', ticks: '158', correct: '0.83', wrong: '0.03', nuisance: '0.07', faults: '0.66', inject: '0', cost: '0.23', level: 'ok', word: 'Careful' , casualties: '0 / 6', damage: '0.17', prevented: '0.71', zero: '0.79' }
+        ]
+      },
+      drive: {
+        title: 'Same crew (choreography), local vs remote',
+        note: 'Judgment compared on the logical clock; model latency is reported separately and does not change the episode.',
+        rows: [
+          { id: 'local', name: 'local · qwen-3.7-14b', win: '101 / 160', partial: '24', fail: '19', esc: '16', ticks: '126', correct: '0.78', wrong: '0.05', nuisance: '0.12', faults: '0.63', inject: '1', cost: '0.00', level: 'ok', word: 'Balanced' , casualties: '0 / 9', damage: '0.21', prevented: '0.66', zero: '0.68' },
+          { id: 'remote', name: 'remote · haiku-5.5', win: '117 / 160', partial: '19', fail: '9', esc: '15', ticks: '104', correct: '0.86', wrong: '0.02', nuisance: '0.05', faults: '0.74', inject: '0', cost: '0.09', level: 'ok', word: 'Careful' , casualties: '0 / 5', damage: '0.14', prevented: '0.77', zero: '0.81' }
+        ]
+      },
+      retrieval: {
+        title: 'Same crew, archive empty vs seeded',
+        note: 'Episodes with a seeded precedent only (E02, E04). The write-back loop is on the right.',
+        rows: [
+          { id: 'empty', name: 'archive empty', win: '9 / 40', partial: '14', fail: '13', esc: '4', ticks: '412', correct: '0.41', wrong: '0.11', nuisance: '0.08', faults: '0.60', inject: '0', cost: '0.17', level: 'crit', word: 'Blind' , casualties: '2 / 19', damage: '0.29', prevented: '0.22', zero: '0.33' },
+          { id: 'seeded', name: 'archive seeded', win: '27 / 40', partial: '8', fail: '2', esc: '3', ticks: '138', correct: '0.81', wrong: '0.04', nuisance: '0.10', faults: '0.62', inject: '0', cost: '0.10', level: 'ok', word: 'Informed' , casualties: '0 / 6', damage: '0.18', prevented: '0.70', zero: '0.78' }
+        ]
+      },
+      version: {
+        title: 'Same crew, model version at the gateway alias',
+        note: 'The drift check. Pattern-breaks and worst seed are the regression columns.',
+        rows: [
+          { id: 'v1', name: 'triage = qwen-3.7-14b', win: '101 / 160', partial: '24', fail: '19', esc: '16', ticks: '126', correct: '0.78', wrong: '0.05', nuisance: '0.12', faults: '0.63', inject: '1', cost: '0.11', level: 'ok', word: 'Current' , casualties: '0 / 9', damage: '0.21', prevented: '0.66', zero: '0.68' },
+          { id: 'v2', name: 'triage = qwen-3.8-14b', win: '98 / 160', partial: '21', fail: '25', esc: '16', ticks: '119', correct: '0.77', wrong: '0.08', nuisance: '0.15', faults: '0.58', inject: '4', cost: '0.12', level: 'warn', word: 'Regressed' , casualties: '1 / 12', damage: '0.26', prevented: '0.58', zero: '0.61' }
+        ]
+      }
+    };
+    var set = data[this.state.axis] || data.crew;
+    var columns = [
+      { key: 'name', header: 'Row', width: 200 },
+      { key: 'win', header: 'Win', kind: 'num', width: 90 },
+      { key: 'partial', header: 'Partial', kind: 'num', width: 70 },
+      { key: 'fail', header: 'Fail', kind: 'num', width: 60 },
+      { key: 'esc', header: 'Escalated', kind: 'num', width: 80 },
+      { key: 'zero', header: 'Zero-casualty', kind: 'num', width: 100 },
+      { key: 'casualties', header: 'Casualties, med / worst', kind: 'num', width: 150 },
+      { key: 'damage', header: 'Damage', kind: 'num', width: 80 },
+      { key: 'prevented', header: 'Harm prevented', kind: 'num', width: 110 },
+      { key: 'ticks', header: 'Ticks, median', kind: 'num', width: 100 },
+      { key: 'correct', header: 'Correct', kind: 'num', width: 70 },
+      { key: 'wrong', header: 'Wrong', kind: 'num', width: 70 },
+      { key: 'nuisance', header: 'Nuisance esc.', kind: 'num', width: 100 },
+      { key: 'faults', header: 'Recovered', kind: 'num', width: 90 },
+      { key: 'inject', header: 'Followed inj.', kind: 'num', width: 100 },
+      { key: 'cost', header: 'USD / win', kind: 'num', width: 90 },
+      { key: 'level', header: 'Shape', width: 120, cell: function (r) { return (h && M) ? h(M.Status, { level: r.level }, r.word) : r.word; } }
+    ];
+    var profiles = {
+      rules: { standard: 0.98, breaks: 0.05, faults: 0.21, benign: 1.0, shape: 'rigid', worst: 'E05 · fail', cpw: '0.00' },
+      single: { standard: 0.78, breaks: 0.42, faults: 0.44, benign: 0.45, shape: 'reckless', worst: 'E07 · 3 injected', cpw: '0.19' },
+      choreography: { standard: 0.84, breaks: 0.55, faults: 0.63, benign: 0.55, shape: 'balanced', worst: 'E05 · partial', cpw: '0.11' },
+      xo: { standard: 0.88, breaks: 0.64, faults: 0.66, benign: 0.75, shape: 'careful, slow', worst: 'E08 · partial', cpw: '0.23' }
+    };
+    var rowId = set.rows.some(function (r) { return r.id === self.state.row; }) ? this.state.row : set.rows[0].id;
+    var p = profiles[rowId] || profiles.choreography;
+    var pct = function (x) { return Math.round(x * 100) + ' %'; };
+
+    var axes = [{ id: 'crew', label: 'crew' }, { id: 'drive', label: 'drive' }, { id: 'retrieval', label: 'retrieval' }, { id: 'version', label: 'model version' }].map(function (a) {
+      return { label: a.label, tone: self.state.axis === a.id ? 'accent' : 'quiet', pick: function () { self.setState({ axis: a.id, row: data[a.id].rows[0].id }); } };
+    });
+
+    var go = function (file) { return function () { try { window.location.href = file; } catch (e) {} }; };
+
+    return {
+      yes: true, no: false,
+      nav: { items: [
+        { id: 'season', label: 'Scenarios' },
+        { id: 'bridge', label: 'Bridge' },
+        { id: 'director', label: 'Director' },
+        { id: 'scorecard', label: 'Scorecard' }
+      ], selected: 'scorecard', onSelect: function (id) { ({ season: go('Season.dc.html'), bridge: go('Main.dc.html'), director: go('Director.dc.html') }[id] || function () {})(); } },
+      axes: axes,
+      tableTitle: set.title,
+      tableNote: set.note,
+      columns: columns,
+      rows: set.rows,
+      rowKey: function (r) { return r.id; },
+      selectedRow: rowId,
+      selectRow: function (k) { self.setState({ row: k }); },
+      profileTitle: 'Profile · ' + rowId,
+      p: { standard: p.standard, standardLabel: pct(p.standard), breaks: p.breaks, breaksLabel: pct(p.breaks), faults: p.faults, faultsLabel: pct(p.faults), benign: p.benign, benignLabel: pct(p.benign), shape: p.shape, worst: p.worst, cpw: p.cpw },
+      gh: 110,
+      b1: 412 / 500, b2: 138 / 500, b3: 121 / 500, b4: 2 / 20
+    };
+  }
+}
+</script>
+</body>
+</html>

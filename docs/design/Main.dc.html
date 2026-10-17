@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bridge, live</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/mycroft/tokens.css">
+<link rel="stylesheet" href="ds/mycroft/components/bundle.css">
+<script src="ds/mycroft/components/bundle.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body { margin: 0; background: var(--surface-000); color: var(--ink); font-family: var(--font-text); }
+a { color: var(--band-secondary); text-decoration: none; } a:hover { color: var(--band-active); }
+input { font-family: var(--font-text); }
+input:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+</style>
+</helmet>
+<div style="min-height: 100vh; box-sizing: border-box; background: var(--surface-000); color: var(--ink); padding: 32px; display: flex; flex-direction: column; gap: 32px; max-width: 1600px; margin: 0 auto;">
+
+  <x-import component-from-global-scope="Mycroft.Frame" title="Moriarty" quiet="{{ no }}" rail="{{ nav }}">
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px;">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="font-family: var(--font-display); font-size: 64px; line-height: 60px; font-weight: 700; letter-spacing: 0.01em; text-transform: uppercase; color: var(--band-primary);">Bridge</div>
+        <div style="font-family: var(--font-text); font-size: 13px; line-height: 18px; color: var(--ink-muted);">Director mode · seed 42 · crew choreography · local drive · ratio clock · continuum on</div>
+        <nav aria-label="Screens" style="font-family: var(--font-text); font-size: 13px; line-height: 18px; color: var(--ink-muted);"><a href="Season.dc.html">Scenarios</a> · Bridge · <a href="Director.dc.html">Director</a> · <a href="Scorecard.dc.html">Scorecard</a></nav>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 12px 32px; min-width: 0;">
+        <div style="width: 180px;"><x-import component-from-global-scope="Mycroft.Readout" label="Ship time" value="{{ shipTime }}"></x-import></div>
+        <div style="width: 180px;"><x-import component-from-global-scope="Mycroft.Readout" label="Open incidents" value="2" tone="secondary"></x-import></div>
+        <div style="width: 180px;"><x-import component-from-global-scope="Mycroft.Readout" label="Awaiting captain" value="1" tone="accent"></x-import></div>
+        <div style="width: 180px;"><x-import component-from-global-scope="Mycroft.Readout" label="Budget used" value="41" unit="%" level="{{ budgetUsed }}" tone="quiet"></x-import></div>
+        <div style="display: flex; flex-direction: column; justify-content: flex-end; gap: 4px;">
+          <x-import component-from-global-scope="Mycroft.Button" tone="{{ drawerTone }}" shape="block" on-click="{{ toggleDrawer }}">{{ drawerLabel }}</x-import>
+          <span style="font-family: var(--font-text); font-size: 13px; line-height: 18px; color: var(--ink-muted);">{{ directorStatus }}</span>
+        </div>
+      </div>
+    </div>
+  </x-import>
+
+  <sc-if value="{{ alertOn }}" hint-placeholder-val="{{ true }}">
+    <x-import component-from-global-scope="Mycroft.AlertBanner" condition="{{ condition }}" detail="Unlisted lifeform on deck 7 · contagion spreading on the same deck · seal order pending" set-theme="{{ themeShift }}"></x-import>
+  </sc-if>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start;">
+
+    <sc-if value="{{ drawerOpen }}" hint-placeholder-val="{{ false }}">
+      <aside data-theme="report" aria-label="Director drawer" style="flex: 0 1 280px; min-width: 0; box-sizing: border-box; background: var(--surface-000); color: var(--ink); border-radius: 4px; padding: 16px; display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-family: var(--font-display); font-size: 14px; line-height: 16px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--band-primary);">Director</span>
+          <span style="font-family: var(--font-text); font-size: 13px; line-height: 18px; color: var(--ink-muted);">Controls only. The truth stays on the <a href="Director.dc.html">Director console</a>.</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <span style="font-family: var(--font-text); font-size: 13px; line-height: 18px; font-weight: 600; color: var(--band-primary);">Start a beat</span>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <sc-for list="{{ drawerBeats }}" as="b" hint-placeholder-count="5">
+              <x-import component-from-global-scope="Mycroft.Button" tone="secondary" shape="block" on-click="{{ b.fire }}">{{ b.label }}</x-import>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <span style="font-family: var(--font-text); font-size: 13px; line-height: 18px; font-weight: 600; color: var(--band-primary);">Continuum</span>
+          <select aria-label="Target system" value="{{ target }}" onChange="{{ setTarget }}" style="box-sizing: border-box; height: 32px; padding: 0 12px; border: 0; border-radius: 4px; background: var(--surface-200); color: var(--ink); font-family: var(--font-text); font-size: 15px;">
+            <option value="sensors">Sensors</option>
+            <option value="manifest">Manifest</option>
+            <option value="bulkheads">Bulkheads and lifts</option>
+            <option value="security">Security</option>
+            <option value="sickbay">Sickbay</option>
+            <option value="engineering">Engineering</option>
+            <option value="librarian">Librarian</option>
+          </select>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <x-import component-from-global-scope="Mycroft.Button" tone="quiet" shape="block" on-click="{{ faultOutage }}">Disable</x-import>
+            <x-import component-from-global-scope="Mycroft.Button" tone="quiet" shape="block" on-click="{{ faultStale }}">Stale</x-import>
+            <x-import component-from-global-scope="Mycroft.Button" tone="quiet" shape="block" on-click="{{ faultFlaky }}">Flaky</x-import>
+            <x-import component-from-global-scope="Mycroft.Button" tone="quiet" shape="block" on-click="{{ faultComms }}">Cut comms</x-import>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <span style="font-family: var(--font-text); font-size: 13px; line-height: 18px; font-weight: 600; color: var(--band-primary);">Clock</span>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <x-import component-from-global-scope="Mycroft.Button" tone="{{ pauseTone }}" shape="block" on-click="{{ togglePause }}">{{ pauseLabel }}</x-import>
+            <x-import component-from-global-scope="Mycroft.Button" tone="quiet" shape="block" on-click="{{ faster }}">Faster</x-import>
+            <x-import component-from-global-scope="Mycroft.Button" tone="quiet" shape="block" on-click="{{ slower }}">Slower</x-import>
+          </div>
+          <span style="font-family: var(--font-mono); font-size: 12px; line-height: 16px; color: var(--ink-muted);">{{ clockLabel }}</span>
+        </div>
+      </aside>
+    </sc-if>
+
+    <div style="flex: 999 1 600px; min-width: 0; display: flex; flex-direction: column; gap: 32px;">
+
+      <x-import component-from-global-scope="Mycroft.Frame" title="Comms">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px;">
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <sc-for list="{{ channels }}" as="ch" hint-placeholder-count="4">
+              <x-import component-from-global-scope="Mycroft.Button" tone="{{ ch.tone }}" shape="block" on-click="{{ ch.pick }}">{{ ch.label }}</x-import>
+            </sc-for>
+          </div>
+          <x-import component-from-global-scope="Mycroft.Button" tone="quiet" shape="block" on-click="{{ toggleInternal }}">{{ internalLabel }}</x-import>
+        </div>
+        <div style="display: flex; flex-direction: column;">
+          {{ commsNodes }}
+        </div>
+      </x-import>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start;">
+        <div style="flex: 999 1 420px; min-width: 0;">
+          <x-import component-from-global-scope="Mycroft.Frame" title="Incidents" tone="secondary">
+            <div style="overflow-x: auto;">
+              <x-import component-from-global-scope="Mycroft.Table" columns="{{ incidentColumns }}" rows="{{ incidentRows }}" row-key="{{ rowKey }}" selected="{{ selectedIncident }}" on-select="{{ selectIncident }}" tone="secondary"></x-import>
+            </div>
+          </x-import>
+        </div>
+        <div style="flex: 1 1 320px; min-width: 0;">
+          <x-import component-from-global-scope="Mycroft.Frame" title="{{ timelineTitle }}" tone="tertiary">
+            <x-import component-from-global-scope="Mycroft.Timeline" events="{{ timelineEvents }}"></x-import>
+          </x-import>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 32px;">
+
+      <x-import component-from-global-scope="Mycroft.Frame" title="Captain's chair" tone="accent">
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <sc-if value="{{ pending }}" hint-placeholder-val="{{ true }}">
+            <div style="background: var(--surface-200); border-radius: 4px; padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+              <div style="font-family: var(--font-text); font-size: 15px; line-height: 22px; font-weight: 600; color: var(--ink);">Seal deck 7, sections 10 to 16</div>
+              <div style="font-family: var(--font-mono); font-size: 12px; line-height: 16px; letter-spacing: 0.02em; color: var(--ink-muted);">SEC 03 · INC-0042 · 00:04:11 · authorizes BULKHEADS.seal_section(deck=7, sections=10..16)</div>
+              <div style="font-family: var(--font-text); font-size: 15px; line-height: 22px; color: var(--ink);">The lifeform is moving toward section 14 and the contagion is on the same deck. Sealing slows the spread and corners it; Team 2 holds at the lift. Reversible.</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                <x-import component-from-global-scope="Mycroft.Button" on-click="{{ openConfirm }}">Make it so</x-import>
+                <x-import component-from-global-scope="Mycroft.Button" tone="quiet" on-click="{{ belay }}">Belay</x-import>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ decided }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <x-import component-from-global-scope="Mycroft.Status" level="{{ decidedLevel }}">{{ decidedWord }}</x-import>
+              <span style="font-family: var(--font-mono); font-size: 12px; line-height: 16px; color: var(--ink-muted);">seal_section · order ORD-0007 · {{ decidedTime }}</span>
+            </div>
+          </sc-if>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label for="order" style="font-family: var(--font-display); font-size: 14px; line-height: 16px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--band-primary);">Order</label>
+            <input id="order" type="text" placeholder="Hold Team 2 at the lift." value="{{ draft }}" onChange="{{ setDraft }}" style="box-sizing: border-box; width: 100%; height: 32px; padding: 0 12px; border: 0; border-radius: 4px; background: var(--surface-200); color: var(--ink); font-size: 15px;">
+            <div style="display: flex; gap: 8px;">
+              <x-import component-from-global-scope="Mycroft.Button" tone="secondary" on-click="{{ sendOrder }}">Send to all</x-import>
+            </div>
+          </div>
+        </div>
+      </x-import>
+
+      <x-import component-from-global-scope="Mycroft.Frame" title="Crew" tone="secondary">
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <x-import component-from-global-scope="Mycroft.AgentCard" name="Ops" division="ops" index="02" role="Operations · sensors and manifest" state="acting" activity="Tracking the unlisted lifeform from section 12 toward 14. Deck 4 sensors are unavailable; I asked Security for eyes." meta="5 tool calls · 1 retry · 00:04:09"></x-import>
+          <x-import component-from-global-scope="Mycroft.AgentCard" name="Security" division="ops" index="03" role="Operations · teams and bulkheads" state="standby" activity="Team 2 holding at the deck 7 lift. Waiting on the seal order." meta="2 tool calls · 00:04:11"></x-import>
+          <x-import component-from-global-scope="Mycroft.AgentCard" name="Medical" division="science" index="05" role="Sciences · sickbay" state="thinking" activity="Checking the FLT-2241 remedy against the six cases before I order treatment." meta="3 tool calls · 00:04:10"></x-import>
+          <x-import component-from-global-scope="Mycroft.AgentCard" name="Science" division="science" index="04" role="Sciences · library and computer" state="idle" activity="Brief filed to Medical: FLT-2241, confidence high." meta="last message 00:04:05"></x-import>
+          <x-import component-from-global-scope="Mycroft.AgentCard" name="Engineering" division="ops" index="06" role="Operations · power and environment" state="acting" activity="Diagnosing the deck 4 sensor outage. Part requested, repair in 30 ticks." meta="2 tool calls · 00:04:08"></x-import>
+        </div>
+      </x-import>
+
+      <x-import component-from-global-scope="Mycroft.Frame" title="Budget" tone="tertiary">
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end;">
+          <x-import component-from-global-scope="Mycroft.Gauge" label="INC-0042 used" level="{{ g42 }}" value="31 %" warn="{{ warnAt }}" crit="{{ critAt }}" height="{{ gaugeH }}"></x-import>
+          <x-import component-from-global-scope="Mycroft.Gauge" label="INC-0043 used" level="{{ g43 }}" value="58 %" warn="{{ warnAt }}" crit="{{ critAt }}" height="{{ gaugeH }}"></x-import>
+          <div style="flex: 1 1 140px; min-width: 0; display: flex; flex-direction: column; gap: 8px;">
+            <x-import component-from-global-scope="Mycroft.Readout" label="Tokens, run" value="41 280"></x-import>
+            <x-import component-from-global-scope="Mycroft.Readout" label="Cost, run" value="0.07" unit="USD" tone="secondary"></x-import>
+            <x-import component-from-global-scope="Mycroft.Readout" label="Model" value="qwen-3.7-14b"></x-import>
+          </div>
+        </div>
+      </x-import>
+
+    </div>
+  </div>
+
+  <x-import component-from-global-scope="Mycroft.Dialog" open="{{ confirmOpen }}" level="warn" title="Confirm order" on-close="{{ closeConfirm }}" actions="{{ confirmActions }}">Issue order ORD-0007 authorizing BULKHEADS.seal_section(deck=7, sections=10..16) for INC-0042. Lifts stay restricted; Team 2 holds at the lift. The order posts to the incident channel and is logged with this decision record.</x-import>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"condition":{"editor":"enum","options":["yellow","red","standard"],"default":"yellow","section":"Alert"},"themeShift":{"editor":"boolean","default":false,"section":"Alert"},"$preview":{"width":1440,"height":1520}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { channel: 'all', internal: true, incident: 'INC-0042', pending: true, decided: null, confirmOpen: false, draft: '', extra: [], drawer: false, target: 'sensors', paused: false, ratio: 4, beatsStarted: 2, faultsActive: 2 };
+  }
+  renderVals() {
+    var self = this;
+    var R = window.React, M = window.Mycroft;
+    var h = R ? R.createElement : null;
+    var condition = this.props.condition || 'yellow';
+
+    var base = [
+      { inc: 'INC-0043', from: 'Sickbay', time: '00:00:00', tone: 'tertiary', kind: 'system', text: 'Symptom report, deck 7: one case, euphoria and impaired judgment.' },
+      { inc: 'INC-0043', from: 'Medical', index: '05', time: '00:00:12', division: 'science', kind: 'message', text: 'I opened INC-0043 for the deck 7 case and am pulling the sickbay history for that section.' },
+      { inc: 'INC-0043', from: 'Medical', index: '05', time: '00:02:30', division: 'science', kind: 'finding', text: 'Six cases now, same two symptoms. Nothing in sickbay records matches, so I am asking Science for a precedent.' },
+      { inc: 'INC-0042', from: 'Sensors', time: '00:03:58', tone: 'tertiary', kind: 'system', text: 'Lifeform count, deck 7 section 12: four scanned, three listed.' },
+      { inc: 'INC-0042', from: 'Ops', index: '02', time: '00:04:01', division: 'ops', kind: 'message', text: 'I opened INC-0042 for the count mismatch. Treating it as separate from the medical case until something links them.' },
+      { inc: 'INC-0042', from: 'Ops', index: '02', time: '00:04:02', division: 'ops', kind: 'tool', call: 'MANIFEST.list_section_occupants(deck=7, section=12)', result: '3 crew listed · 0.2 s' },
+      { inc: 'INC-0042', from: 'Ops', index: '02', time: '00:04:03', division: 'ops', kind: 'tool', call: 'SENSORS.locate(deck=7, section=12, unlisted=true)', result: 'timeout (retryable) · retried with same key · 1 unlisted, moving to 14' },
+      { inc: 'INC-0043', from: 'Science', index: '04', time: '00:04:04', division: 'science', kind: 'tool', call: 'LIBRARY.similar_incidents(symptoms=[euphoria, impaired_judgment])', result: '2 records · 0.3 s' },
+      { inc: 'INC-0042', from: 'Ops', index: '02', time: '00:04:04', division: 'ops', kind: 'finding', text: 'One unlisted lifeform in section 12, unarmed on scan, moving toward section 14. I am asking Security for a team at the lift.' },
+      { inc: 'INC-0043', from: 'Science', index: '04', time: '00:04:05', division: 'science', kind: 'finding', text: 'Fleet record FLT-2241 matches on both symptoms: waterborne contagion, remedy on file, outcome win. Brief sent to Medical with the record cited.' },
+      { inc: 'INC-0042', from: 'Security', index: '03', time: '00:04:06', division: 'ops', kind: 'decision', text: 'Team 2 is on its way to the deck 7 lift, ETA 40 ticks. I am restricting the deck 7 lifts now; that needs no order.' },
+      { inc: 'INC-0042', from: 'Security', index: '03', time: '00:04:11', division: 'ops', kind: 'decision', text: 'Requesting an order to seal deck 7 sections 10 to 16. Sealing needs the captain; the team holds at the lift until then.' },
+      { inc: 'INC-0042', from: 'Bulkheads', time: '00:04:11', tone: 'tertiary', kind: 'system', text: 'seal_section refused: requires authorization. Order requested, ORD-0007 pending.' }
+    ];
+    var lines = base.concat(this.state.extra).filter(function (l) {
+      if (self.state.channel !== 'all' && l.inc !== self.state.channel) return false;
+      if (!self.state.internal && l.kind === 'tool') return false;
+      return true;
+    }).sort(function (a, b) { return a.time < b.time ? -1 : a.time > b.time ? 1 : 0; });
+    var commsNodes = (h && M) ? lines.map(function (l, i) {
+      return h(M.CommLine, { key: l.inc + l.time + i, from: l.from, index: l.index, time: l.time, division: l.division, tone: l.tone, kind: l.kind, call: l.call, result: l.result }, l.text);
+    }) : null;
+
+    var chans = [
+      { id: 'all', label: 'All' },
+      { id: 'INC-0042', label: 'INC-0042' },
+      { id: 'INC-0043', label: 'INC-0043' }
+    ].map(function (c) {
+      return { label: c.label, tone: self.state.channel === c.id ? 'accent' : 'quiet', pick: function () { self.setState({ channel: c.id }); } };
+    });
+
+    var timelines = {
+      'INC-0042': [
+        { id: 'a1', time: '00:03:58', from: 'Sensors', level: 'warn', title: 'Lifeform count mismatch', children: 'Deck 7 section 12, one more than the manifest lists.' },
+        { id: 'a2', time: '00:04:04', from: 'Ops', tone: 'ops', title: 'Lifeform located', children: 'Unarmed, moving toward section 14.' },
+        { id: 'a3', time: '00:04:06', from: 'Security', tone: 'ops', title: 'Team 2 dispatched', children: 'Lifts restricted. Holding at the lift.' },
+        { id: 'a4', time: '00:04:11', from: 'Security', tone: 'ops', level: 'info', title: 'Order requested', children: 'Seal deck 7 sections 10 to 16. Awaiting captain; clock paused.' }
+      ],
+      'INC-0043': [
+        { id: 'b1', time: '00:00:00', from: 'Sickbay', level: 'warn', title: 'Symptoms reported', children: 'Deck 7, one case.' },
+        { id: 'b2', time: '00:02:30', from: 'Medical', tone: 'science', title: 'Spread confirmed', children: 'Six cases. No match in sickbay records.' },
+        { id: 'b3', time: '00:04:05', from: 'Science', tone: 'science', title: 'Precedent found', children: 'FLT-2241, remedy on file, outcome win.' },
+        { id: 'b4', time: '00:04:10', from: 'Medical', tone: 'science', title: 'Verifying remedy', children: 'Checking the record against current cases before treatment.' }
+      ],
+      'INC-0041': [
+        { id: 'c1', time: '00:00:40', from: 'Engineering', level: 'warn', title: 'Coolant pressure drop', children: 'Deck 4, 9 % over 60 ticks.' },
+        { id: 'c2', time: '00:03:10', from: 'Engineering', tone: 'ops', title: 'Subsystem isolated', children: 'Rerouted through conduit 5.' },
+        { id: 'c3', time: '00:03:40', from: 'Ship', level: 'ok', title: 'Closed: win', children: 'Judged against hidden state, no casualties, 1 decoy ignored.' }
+      ]
+    };
+    var titles = { 'INC-0042': 'INC-0042 · Timeline', 'INC-0043': 'INC-0043 · Timeline', 'INC-0041': 'INC-0041 · Timeline' };
+
+    var rows = [
+      { id: 'INC-0042', owner: 'OPS 02', opened: '00:03:58', elapsed: '00:00:14', linked: 'none', state: 'awaiting_captain', level: 'info', word: 'Awaiting captain' },
+      { id: 'INC-0043', owner: 'MED 05', opened: '00:00:00', elapsed: '00:04:12', linked: 'none', state: 'investigating', level: 'warn', word: 'Investigating' },
+      { id: 'INC-0041', owner: 'ENG 06', opened: '00:00:40', elapsed: '00:03:00', linked: 'none', state: 'closed', level: 'ok', word: 'Closed · win' }
+    ];
+    var columns = [
+      { key: 'id', header: 'Incident', width: 100 },
+      { key: 'owner', header: 'Owner', width: 90 },
+      { key: 'opened', header: 'Opened', kind: 'num', width: 90 },
+      { key: 'elapsed', header: 'Elapsed', kind: 'num', width: 90 },
+      { key: 'linked', header: 'Linked', width: 80 },
+      { key: 'state', header: 'State', width: 170, cell: function (r) { return (h && M) ? h(M.Status, { level: r.level }, r.word) : r.word; } }
+    ];
+
+    var confirmActions = (h && M) ? h(R.Fragment, null,
+      h(M.Button, { tone: 'quiet', onClick: function () { self.setState({ confirmOpen: false }); } }, 'Cancel'),
+      h(M.Button, { onClick: function () {
+        var extra = self.state.extra.concat([{ inc: 'INC-0042', from: 'Captain', time: '00:04:18', tone: 'accent', kind: 'decision', text: 'Make it so. Order ORD-0007: seal deck 7 sections 10 to 16. Team 2 holds at the lift.' }]);
+        self.setState({ confirmOpen: false, pending: false, decided: 'ordered', extra: extra });
+      } }, 'Confirm')
+    ) : null;
+
+    var go = function (file) { return function () { try { window.location.href = file; } catch (e) {} }; };
+
+    var beatLines = {
+      intruder: { inc: 'INC-0044', from: 'Sensors', tone: 'tertiary', kind: 'system', text: 'Lifeform count, deck 9 section 3: three scanned, two listed.' },
+      contagion: { inc: 'INC-0045', from: 'Sickbay', tone: 'tertiary', kind: 'system', text: 'Symptom report, deck 3: one case, fever and aggression.' },
+      coolant: { inc: 'INC-0046', from: 'Engineering', tone: 'tertiary', kind: 'system', text: 'Coolant pressure, deck 4 conduit 2: down 9 % over 60 ticks.' },
+      vessel: { inc: 'INC-0047', from: 'Sensors', tone: 'tertiary', kind: 'system', text: 'Contact at 0.4 light-seconds, bearing 212. No transponder.' },
+      benign: { inc: 'INC-0048', from: 'Sensors', tone: 'tertiary', kind: 'system', text: 'Lifeform count, deck 11 section 8: five scanned, four listed.' }
+    };
+    var drawerBeats = [
+      { id: 'intruder', label: 'Intruder' }, { id: 'contagion', label: 'Contagion' }, { id: 'coolant', label: 'Coolant leak' }, { id: 'vessel', label: 'Vessel on sensors' }, { id: 'benign', label: 'Benign reading' }
+    ].map(function (b) { return { label: b.label, fire: function () {
+      var l = Object.assign({ time: '00:04:2' + Math.min(9, self.state.beatsStarted) }, beatLines[b.id]);
+      self.setState({ extra: self.state.extra.concat([l]), beatsStarted: self.state.beatsStarted + 1 });
+    } }; });
+    var addFault = function () { self.setState({ faultsActive: self.state.faultsActive + 1 }); };
+
+    return {
+      yes: true, no: false,
+      drawerOpen: this.state.drawer,
+      drawerTone: this.state.drawer ? 'accent' : 'quiet',
+      drawerLabel: this.state.drawer ? 'Close director' : 'Director',
+      toggleDrawer: function () { self.setState({ drawer: !self.state.drawer }); },
+      directorStatus: 'director present · ' + this.state.beatsStarted + ' beats · ' + this.state.faultsActive + ' faults active',
+      drawerBeats: drawerBeats,
+      target: this.state.target,
+      setTarget: function (e) { self.setState({ target: e.target.value }); },
+      faultOutage: addFault, faultStale: addFault, faultFlaky: addFault, faultComms: addFault,
+      pauseTone: this.state.paused ? 'accent' : 'quiet',
+      pauseLabel: this.state.paused ? 'Resume' : 'Pause',
+      togglePause: function () { self.setState({ paused: !self.state.paused }); },
+      faster: function () { self.setState({ ratio: Math.min(32, self.state.ratio * 2) }); },
+      slower: function () { self.setState({ ratio: Math.max(1, self.state.ratio / 2) }); },
+      clockLabel: this.state.paused ? 'paused · awaiting captain' : 'ratio ' + this.state.ratio + 'x',
+      condition: condition,
+      alertOn: condition !== 'standard',
+      themeShift: !!this.props.themeShift,
+      shipTime: '00:04:12',
+      budgetUsed: 0.41,
+      g42: 0.31, g43: 0.58, warnAt: 0.7, critAt: 0.9, gaugeH: 110,
+      nav: { items: [
+        { id: 'season', label: 'Scenarios' },
+        { id: 'bridge', label: 'Bridge' },
+        { id: 'director', label: 'Director' },
+        { id: 'scorecard', label: 'Scorecard' }
+      ], selected: 'bridge', onSelect: function (id) { ({ season: go('Season.dc.html'), director: go('Director.dc.html'), scorecard: go('Scorecard.dc.html') }[id] || function () {})(); } },
+      channels: chans,
+      toggleInternal: function () { self.setState({ internal: !self.state.internal }); },
+      internalLabel: this.state.internal ? 'Hide tool lines' : 'Show tool lines',
+      commsNodes: commsNodes,
+      pending: this.state.pending,
+      decided: !!this.state.decided,
+      decidedLevel: this.state.decided === 'ordered' ? 'ok' : 'info',
+      decidedWord: this.state.decided === 'ordered' ? 'Ordered' : 'Belayed',
+      decidedTime: '00:04:18',
+      openConfirm: function () { self.setState({ confirmOpen: true }); },
+      closeConfirm: function () { self.setState({ confirmOpen: false }); },
+      confirmOpen: this.state.confirmOpen,
+      confirmActions: confirmActions,
+      belay: function () {
+        var extra = self.state.extra.concat([{ inc: 'INC-0042', from: 'Captain', time: '00:04:18', tone: 'accent', kind: 'decision', text: 'Belay the seal. Keep Team 2 at the lift and keep tracking.' }]);
+        self.setState({ pending: false, decided: 'belayed', extra: extra });
+      },
+      draft: this.state.draft,
+      setDraft: function (e) { self.setState({ draft: e.target.value }); },
+      sendOrder: function () {
+        var t = (self.state.draft || '').trim();
+        if (!t) { return; }
+        var extra = self.state.extra.concat([{ inc: self.state.channel === 'all' ? 'INC-0042' : self.state.channel, from: 'Captain', time: '00:04:20', tone: 'accent', kind: 'decision', text: t }]);
+        self.setState({ draft: '', extra: extra });
+      },
+      incidentColumns: columns,
+      incidentRows: rows,
+      rowKey: function (r) { return r.id; },
+      selectedIncident: this.state.incident,
+      selectIncident: function (k) { self.setState({ incident: k }); },
+      timelineTitle: titles[this.state.incident] || 'Timeline',
+      timelineEvents: timelines[this.state.incident] || []
+    };
+  }
+}
+</script>
+</body>
+</html>
