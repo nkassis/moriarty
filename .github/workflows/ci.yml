@@ -1,0 +1,25 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Install Python and dependencies
+        run: uv sync --all-packages --locked
+      - name: Lint
+        run: uv run ruff check .
+      - name: Format
+        run: uv run black --check .
+      - name: Test
+        run: uv run pytest
+      - name: Schema drift
+        run: |
+          uv run python -m ship.contract.generate
+          git add -N ship/contract/schema/
+          git diff --exit-code ship/contract/schema/

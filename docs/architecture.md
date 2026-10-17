@@ -670,6 +670,8 @@ M0 to M5 are the minimum demonstrable project. If scope must be cut, the order i
 - [ ] **Ship and crew names.** Original, not borrowed. Pick before M5.
 - [x] **Language.** The Holodeck stays in Python. Its hot loop is a few counters per tick; the crew's model calls dominate by orders of magnitude, and solidity comes from determinism tests, not the language. Rust enters, if at all, as the Doyle evaluator or as a crew that proves the contract is language-neutral.
 - [x] **Agent SDK credit.** If Anthropic's subscription-backed Agent SDK credit returns, it is an additional gateway backend behind an alias at M9, per-user and not pooled; the documented default stays an API key.
+- [x] **Workspace packaging, M0.** uv workspace members (`holodeck`, `ship`) are virtual projects imported from the repo root; `uv sync --all-packages` installs their dependencies. Avoids a build backend while modules live at `holodeck/` and `ship/` directly.
+- [x] **Version freshness, M0.** `exclude-newer` in the root `pyproject.toml` keeps Python packages out of the two weeks before the pin; Python is 3.14 (3.15.0 was inside that window at kickoff); compose image tags follow the same rule. Pre-commit hooks run the locked ruff and black through `uv run`, so there is one version source.
 
 ## Vocabulary
 

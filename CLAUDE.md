@@ -58,3 +58,4 @@ See `docs/architecture.md` § Tech stack and repo layout. Create directories onl
 - When a design question is not answered by `docs/architecture.md`, stop and ask rather than deciding silently; record the answer in the doc's Open decisions section.
 - Run `uv run ruff check . && uv run black --check . && uv run pytest` before declaring anything done.
 - Do not add dependencies without saying why in the PR.
+- Developer tooling (setup, lint, tests, compose, schema generation): see `AGENT.md`.
