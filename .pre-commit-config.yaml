@@ -1,13 +1,34 @@
+# Install once per clone: `uv run pre-commit install --hook-type pre-commit --hook-type pre-push`
 repos:
-  - repo: local
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.10
     hooks:
       - id: ruff
-        name: ruff
-        entry: uv run ruff check --fix
-        language: system
-        types: [python]
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/psf/black
+    rev: 26.5.1
+    hooks:
       - id: black
-        name: black
-        entry: uv run black
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        args: [--maxkb=512]
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: forbid-submodules
+
+  # Secret scanning. Runs on the staged diff at commit time and on the pushed range at push time.
+  # `--only-verified` keeps it quiet: a hit means a live credential, not a pattern match.
+  - repo: https://github.com/trufflesecurity/trufflehog
+    rev: v3.99.0
+    hooks:
+      - id: trufflehog
+        name: trufflehog (staged / pushed range)
+        entry: bash -c 'trufflehog git file://. --since-commit HEAD --results=verified --fail --no-update'
         language: system
-        types: [python]
+        stages: [pre-commit, pre-push]
+        pass_filenames: false
