@@ -1,16 +1,18 @@
 # Install once per clone: `uv run pre-commit install --hook-type pre-commit --hook-type pre-push`
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.10
+  # Lint and format with the versions in uv.lock, so hooks and CI agree.
+  - repo: local
     hooks:
       - id: ruff
-        args: [--fix]
-      - id: ruff-format
-
-  - repo: https://github.com/psf/black
-    rev: 26.5.1
-    hooks:
+        name: ruff
+        entry: uv run ruff check --fix
+        language: system
+        types: [python]
       - id: black
+        name: black
+        entry: uv run black
+        language: system
+        types: [python]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -22,7 +24,7 @@ repos:
       - id: forbid-submodules
 
   # Secret scanning. Runs on the staged diff at commit time and on the pushed range at push time.
-  # `--only-verified` keeps it quiet: a hit means a live credential, not a pattern match.
+  # `--results=verified` keeps it quiet: a hit means a live credential, not a pattern match.
   - repo: https://github.com/trufflesecurity/trufflehog
     rev: v3.99.0
     hooks:

@@ -4,22 +4,21 @@ What keeps secrets and junk off `main`, and what to do when a check fires.
 
 ## Rules
 
-- `main` is protected: changes arrive by pull request; direct push and force-push are off; the `ci`, `secret-scan` and `schema-drift` checks must pass; the branch must be up to date with `main` before merge.
+- `main` is protected: changes arrive by pull request; direct push and force-push are off; the `check` and `TruffleHog (verified secrets)` checks must pass; the branch must be up to date with `main` before merge.
 - No credentials in the tree. `infra/.env` is ignored; `infra/.env.example` is committed with placeholder values only. Provider keys live in the gateway's environment, never in a crew.
 - No franchise names, ship names, registry numbers, insignia or stardates. Reviewers check this by hand; there is no linter for it.
 - Docs changes carry the same bar as code: the writing standard in `docs/architecture.md` § Developer documentation.
 
 ## Secret scanning
 
-Three layers, all TruffleHog with `--only-verified`, so a report means a credential that authenticated against its provider, not a regex match.
+Two layers, both TruffleHog with `--only-verified`, so a report means a credential that authenticated against its provider, not a regex match.
 
 | Layer | When | Scope |
 | --- | --- | --- |
 | pre-commit hook | `git commit`, `git push` | staged diff / pushed range |
 | GitHub Action `secret-scan` | every push and PR | commits added by the push or PR |
-| GitHub push protection | `git push` to GitHub | GitHub's own detector set; blocks the push |
 
-Enable the third in the repo settings: Settings → Code security → Secret scanning → Push protection. It is free on private repos for personal accounts as of 2025; if the toggle is missing the Action still covers it.
+GitHub's own push protection is free only for public repositories (user-level protection) or with a paid GitHub Secret Protection licence on Team/Enterprise organizations. This repo is private under a personal account, so the pre-commit hook and the Action are the two layers. When the repo goes public, user-level push protection applies automatically.
 
 ### Local setup
 
@@ -62,7 +61,7 @@ False positives are rare with `--only-verified`. If one happens, exclude the pat
 Settings → Branches → Add rule for `main`:
 
 - Require a pull request before merging; 0 required approvals while it is one person, 1 when a second contributor joins.
-- Require status checks to pass: `ci`, `secret-scan`, `schema-drift`. Require branches to be up to date.
+- Require status checks to pass: `check` (lint, format, tests, schema drift) and `TruffleHog (verified secrets)`. Require branches to be up to date.
 - Require conversation resolution.
 - Block force pushes. Do not allow deletions.
 - Do not allow bypassing the above settings (includes admins).
@@ -73,7 +72,7 @@ The same via `gh`:
 gh api -X PUT repos/nkassis/moriarty/branches/main/protection \
   --input - <<'JSON'
 {
-  "required_status_checks": {"strict": true, "contexts": ["ci", "secret-scan", "schema-drift"]},
+  "required_status_checks": {"strict": true, "contexts": ["check", "TruffleHog (verified secrets)"]},
   "enforce_admins": true,
   "required_pull_request_reviews": {"required_approving_review_count": 0},
   "restrictions": null,
@@ -84,4 +83,4 @@ gh api -X PUT repos/nkassis/moriarty/branches/main/protection \
 JSON
 ```
 
-Check names must match the job `name:` values in `.github/workflows/`. Adjust the list when CI jobs are renamed.
+Check names are the job `name:` values in `.github/workflows/` (`check` in `ci.yml`, `TruffleHog (verified secrets)` in `secret-scan.yml`). Adjust the list when CI jobs are renamed.
