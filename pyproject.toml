@@ -1,0 +1,50 @@
+[project]
+name = "moriarty"
+version = "0.0.0"
+description = "A playground for comparing agentic-system designs against a simulated starship."
+requires-python = ">=3.14,<3.15"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "black",
+    "pre-commit",
+    "pytest",
+    "pytest-asyncio",
+    "ruff",
+    "testcontainers[postgres,rabbitmq]",
+]
+
+[tool.uv]
+# Members are virtual: modules are imported from the repo root (see pytest pythonpath).
+package = false
+# Nothing published in the two weeks before the M0 kickoff (2026-10-17).
+exclude-newer = "2026-10-03T00:00:00Z"
+
+[tool.uv.workspace]
+members = ["holodeck", "ship"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "ANN", "ASYNC", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["ANN401"]
+"**/test_*.py" = ["ANN401"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["holodeck", "ship"]
+
+[tool.black]
+line-length = 100
+target-version = ["py314"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests", "holodeck", "ship"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+markers = ["integration: needs Docker (testcontainers for RabbitMQ or Postgres)"]

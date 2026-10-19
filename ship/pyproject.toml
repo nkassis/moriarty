@@ -1,0 +1,9 @@
+[project]
+name = "moriarty-ship"
+version = "0.0.0"
+description = "Ship layer: contract, bus, world views."
+requires-python = ">=3.14,<3.15"
+dependencies = []
+
+[tool.uv]
+package = false
