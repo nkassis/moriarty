@@ -11,7 +11,7 @@ What keeps secrets and junk off `main`, and what to do when a check fires.
 
 ## Secret scanning
 
-Two layers, both TruffleHog with `--only-verified`, so a report means a credential that authenticated against its provider, not a regex match.
+Two layers, both TruffleHog with `--results=verified`, so a report means a credential that authenticated against its provider, not a regex match.
 
 | Layer | When | Scope |
 | --- | --- | --- |
@@ -54,7 +54,7 @@ Exit code 0 means nothing verified. Exit 183 means a verified secret was found; 
 3. If it is already on GitHub, rewrite history (`git filter-repo`) and force-push the branch; `main` has force-push off, so ask a repo admin or merge the rewrite through a PR after discussing. A leaked secret in `main` history is a rotate-and-move-on situation, not a reason to rewrite `main`.
 4. Re-run the full-history scan.
 
-False positives are rare with `--only-verified`. If one happens, exclude the path in a `.trufflehogignore` (regex per line) rather than turning the check off.
+False positives are rare with `--results=verified`. If one happens, exclude the path in a `.trufflehogignore` (regex per line) rather than turning the check off.
 
 ## Branch protection (settings, not code)
 
