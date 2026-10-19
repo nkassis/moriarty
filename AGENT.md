@@ -7,9 +7,11 @@ Developer tooling. Commands run from the repo root.
 ```sh
 uv python install 3.14
 uv sync --all-packages
-uv run pre-commit install
+uv run pre-commit install --hook-type pre-commit --hook-type pre-push
 cp infra/.env.example infra/.env   # then replace the placeholders
 ```
+
+The pre-push hook runs TruffleHog and needs the binary on `PATH`; install it per `docs/security.md` § Local setup.
 
 Workspace members (`holodeck`, `ship`) are virtual uv projects: modules import from the repo root. Always sync with `--all-packages`; a plain `uv sync` removes member dependencies.
 
