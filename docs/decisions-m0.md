@@ -39,6 +39,7 @@ Answers to the questions raised before M0 code was written. Each is binding for 
 **15. RabbitMQ user.** `moriarty` is the default user, credentials from `infra/.env` with a committed `.env.example`. It has the `administrator` tag because it creates crew users in M3; crew users get only the topic permissions in `docs/architecture.md`. Topology is declared in code; quorum queues with delivery limit 5, dead-lettered to `lost-hail`.
 
 **16. Branches.** No remote in M0. Work on `m0/scaffold` and `m0/behaviour`; stop for review after each.
+Superseded by PR #1/#2: the repo has a remote; branches are pushed and land on `main` by pull request.
 
 **17. Housekeeping.** Delete `moriarty-docs.zip:Zone.Identifier` (a Windows download artefact; it does not belong in the tree). Widen `.gitignore` to `.env.*` keeping `.env.example`. Add `AGENT.md` for dev tooling; `CLAUDE.md` stays the project brief and points at it.
 
