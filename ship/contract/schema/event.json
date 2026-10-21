@@ -1,0 +1,79 @@
+{
+  "$defs": {
+    "JsonValue": {},
+    "Source": {
+      "description": "The ship system that produced a reading; the same names as the MCP servers.",
+      "enum": [
+        "sensors",
+        "manifest",
+        "bulkheads",
+        "security",
+        "sickbay",
+        "engineering",
+        "librarian",
+        "comms"
+      ],
+      "title": "Source",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A reading as crews receive it on `subspace`. `traceparent` rides in AMQP headers only.",
+  "properties": {
+    "event_id": {
+      "format": "uuid",
+      "title": "Event Id",
+      "type": "string"
+    },
+    "observed": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Observed",
+      "type": "object"
+    },
+    "routing_key": {
+      "pattern": "^alert\\.[a-z_]+\\.[a-z_]+$",
+      "title": "Routing Key",
+      "type": "string"
+    },
+    "run_id": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "severity": {
+      "description": "1 to 5, 5 most severe",
+      "maximum": 5,
+      "minimum": 1,
+      "title": "Severity",
+      "type": "integer"
+    },
+    "ship_time": {
+      "description": "Ticks since run start",
+      "minimum": 0,
+      "title": "Ship Time",
+      "type": "integer"
+    },
+    "source": {
+      "$ref": "#/$defs/Source"
+    },
+    "wall_time": {
+      "format": "date-time",
+      "title": "Wall Time",
+      "type": "string"
+    }
+  },
+  "required": [
+    "event_id",
+    "run_id",
+    "routing_key",
+    "source",
+    "severity",
+    "observed",
+    "ship_time",
+    "wall_time"
+  ],
+  "title": "Event",
+  "type": "object"
+}

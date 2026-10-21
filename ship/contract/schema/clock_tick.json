@@ -1,0 +1,37 @@
+{
+  "$defs": {
+    "ClockMode": {
+      "enum": [
+        "lockstep",
+        "ratio"
+      ],
+      "title": "ClockMode",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One clock tick. `traceparent` rides in AMQP headers only.",
+  "properties": {
+    "mode": {
+      "$ref": "#/$defs/ClockMode"
+    },
+    "run_id": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "ship_time": {
+      "description": "Ticks since run start",
+      "minimum": 0,
+      "title": "Ship Time",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "run_id",
+    "ship_time",
+    "mode"
+  ],
+  "title": "ClockTick",
+  "type": "object"
+}
