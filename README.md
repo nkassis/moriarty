@@ -28,3 +28,7 @@ uv run --env-file infra/.env python -m holodeck.run --mode ratio    # or --mode 
 Jaeger at http://localhost:16686 shows one trace per run: service `holodeck`, operation `run`.
 
 Developer tooling is documented in [AGENT.md](AGENT.md). The design is in [docs/architecture.md](docs/architecture.md).
+
+## License
+
+MIT, see [LICENSE](LICENSE). Third-party dependency licenses are listed in [docs/licenses.md](docs/licenses.md).
