@@ -59,3 +59,23 @@ See `docs/architecture.md` § Tech stack and repo layout. Create directories onl
 - Run `uv run ruff check . && uv run black --check . && uv run pytest` before declaring anything done.
 - Do not add dependencies without saying why in the PR.
 - Developer tooling (setup, lint, tests, compose, schema generation): see `AGENT.md`.
+
+## Linear
+
+Work is tracked in Linear (team NIM, project Moriarty). Issue keys look like NIM-12.
+
+When a task has a Linear issue (or you can find one that matches), follow this flow:
+
+1. Before starting, move the issue to **In Progress** and work on a branch that
+   contains the issue key, e.g. `nim-12-gateway-contract`.
+2. Put the issue key in commit messages (`NIM-12: add gateway contract types`).
+3. When the work is done and tests pass, push the branch and open a PR with
+   `gh pr create`. Put the key in the PR title and `Closes NIM-12` in the body
+   (`Refs NIM-12` if the PR only covers part of the issue).
+4. Then update the issue through the Linear MCP tools:
+   - link the PR URL on the issue (`save_issue` with `links`; `create_attachment` uploads files, not links)
+   - add a short comment: what changed, how it was verified, anything left open
+   - move the issue to **In Review**
+5. Never move an issue to Done yourself. That happens when the PR merges.
+
+If the task has no Linear issue, ask whether to create one before opening the PR.
