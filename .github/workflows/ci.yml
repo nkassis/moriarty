@@ -13,6 +13,19 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - name: Install Python and dependencies
         run: uv sync --all-packages --locked
+      - name: Licenses
+        # Exact, case-insensitive names: substring "GPL" would also match LGPL (psycopg).
+        run: >-
+          uv run pip-licenses --from=mixed --fail-on="GPL;GPLv2;GPLv3;GPLv2+;GPLv3+;
+          GPL-2.0;GPL-2.0-only;GPL-2.0-or-later;GPL-3.0;GPL-3.0-only;GPL-3.0-or-later;
+          AGPL;AGPLv3;AGPLv3+;AGPL-3.0;AGPL-3.0-only;AGPL-3.0-or-later;
+          GNU General Public License (GPL);
+          GNU General Public License v2 (GPLv2);
+          GNU General Public License v2 or later (GPLv2+);
+          GNU General Public License v3 (GPLv3);
+          GNU General Public License v3 or later (GPLv3+);
+          GNU Affero General Public License v3;
+          GNU Affero General Public License v3 or later (AGPLv3+)"
       - name: Lint
         run: uv run ruff check .
       - name: Format
