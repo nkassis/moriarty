@@ -8,7 +8,7 @@ Because the Ship is a fixed environment with a documented wire contract, any cre
 
 ## Running locally
 
-What exists today: the local infrastructure (RabbitMQ, Postgres with pgvector, an OpenTelemetry collector, Jaeger) and the Python workspace. There is no crew, no ship system and no UI yet.
+What exists today: the local infrastructure (RabbitMQ, Postgres with pgvector, an OpenTelemetry collector, Jaeger), the logical clock, and the spine from the simulation through the bus to the Ship's relay. A run seeds the world, ticks the clock, and emits one lifeform-mismatch reading at tick 10, which the relay validates and publishes on `subspace`. There is no crew, no ship system and no UI yet.
 
 ```sh
 uv python install 3.14
@@ -17,5 +17,14 @@ cp infra/.env.example infra/.env   # then replace the placeholders
 docker compose -f infra/docker-compose.yml --env-file infra/.env up -d
 uv run pytest
 ```
+
+Watch a run end to end:
+
+```sh
+uv run --env-file infra/.env python -m ship.relay &                 # leave running
+uv run --env-file infra/.env python -m holodeck.run --mode ratio    # or --mode lockstep
+```
+
+Jaeger at http://localhost:16686 shows one trace per run: service `holodeck`, operation `run`.
 
 Developer tooling is documented in [AGENT.md](AGENT.md). The design is in [docs/architecture.md](docs/architecture.md).

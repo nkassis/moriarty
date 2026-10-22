@@ -31,6 +31,15 @@ uv run python -m ship.contract.generate
 
 Writes JSON Schema to `ship/contract/schema/`. CI fails if the committed files differ from the output.
 
+## Run the spine
+
+```sh
+uv run --env-file infra/.env python -m ship.relay                   # the relay; leave running
+uv run --env-file infra/.env python -m holodeck.run --mode ratio    # --mode lockstep, --ratio K, --ticks N, --seed S
+```
+
+Both need `AMQP_URL` and `DATABASE_URL` (see `infra/.env.example`); spans go to `OTEL_EXPORTER_OTLP_ENDPOINT`. The relay's queue is declared by either process, so start order does not matter. Traces: Jaeger, service `holodeck`, operation `run`.
+
 ## Local stack
 
 ```sh

@@ -17,6 +17,8 @@ Code, schemas and the contract use plain names. Themed names are display labels 
 | Tool error | `unavailable`, `timeout`, `stale`, `partial`, `requires_authorization`, `not_allowed` |
 | Fault kind | `unavailable`, `stale`, `transient`, `silent` |
 | Fault source | `beat`, `chaos`, `director` |
+| Source | `sensors`, `manifest`, `bulkheads`, `security`, `sickbay`, `engineering`, `librarian`, `comms` |
+| Person kind | `crew`, `passenger`, `unlisted` |
 
 ## Display names
 

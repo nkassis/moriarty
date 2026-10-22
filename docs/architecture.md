@@ -671,6 +671,10 @@ M0 to M5 are the minimum demonstrable project. If scope must be cut, the order i
 - [x] **Language.** The Holodeck stays in Python. Its hot loop is a few counters per tick; the crew's model calls dominate by orders of magnitude, and solidity comes from determinism tests, not the language. Rust enters, if at all, as the Doyle evaluator or as a crew that proves the contract is language-neutral.
 - [x] **Agent SDK credit.** If Anthropic's subscription-backed Agent SDK credit returns, it is an additional gateway backend behind an alias at M9, per-user and not pooled; the documented default stays an API key.
 - [x] **Workspace packaging, M0.** uv workspace members (`holodeck`, `ship`) are virtual projects imported from the repo root; `uv sync --all-packages` installs their dependencies. Avoids a build backend while modules live at `holodeck/` and `ship/` directly.
+- [x] **Station reports, M0.** Lockstep stations report to the clock's in-process `StationRegistry`; consuming heartbeats from `subspace` waits for the Heartbeat model (M1).
+- [x] **Relay rejections, M0.** The relay rejects without requeue anything it cannot relay (unknown routing key, invalid payload, `ship_time` mismatch, a reading before any tick); the queue's dead-letter exchange routes it to `lost-hail`. Process errors are not rejected; the delivery limit dead-letters a message that keeps failing.
+- [x] **Contract schema files, M0.** One file per model in `ship/contract/schema/`, snake-case model name (`raw_observation.json`), keys sorted. `observed` locations are `deck` (integer from 1) and `section` (non-empty string).
+- [x] **Connection settings, M0.** Processes read `AMQP_URL`, `DATABASE_URL` and `OTEL_EXPORTER_OTLP_ENDPOINT` from the environment (`infra/.env` via `uv run --env-file`).
 - [x] **Version freshness, M0.** `exclude-newer` in the root `pyproject.toml` keeps Python packages out of the two weeks before the pin; Python is 3.14 (3.15.0 was inside that window at kickoff); compose image tags follow the same rule. Pre-commit hooks run the locked ruff and black through `uv run`, so there is one version source.
 
 ## Vocabulary
@@ -689,6 +693,11 @@ One rule keeps this from getting cute: **code, schemas and the contract use plai
 | Report claim | `resolved`, `escalated`, `cannot_resolve` |
 | Drive mode | `local`, `remote` |
 | Clock mode | `lockstep`, `ratio` |
+| Tool error | `unavailable`, `timeout`, `stale`, `partial`, `requires_authorization`, `not_allowed` |
+| Fault kind | `unavailable`, `stale`, `transient`, `silent` |
+| Fault source | `beat`, `chaos`, `director` |
+| Source | `sensors`, `manifest`, `bulkheads`, `security`, `sickbay`, `engineering`, `librarian`, `comms` |
+| Person kind | `crew`, `passenger`, `unlisted` |
 
 **Display names (themed, optional)**
 

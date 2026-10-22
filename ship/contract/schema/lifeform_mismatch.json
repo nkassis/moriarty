@@ -1,0 +1,34 @@
+{
+  "additionalProperties": false,
+  "description": "`observed` for `alert.security.lifeform_mismatch`.",
+  "properties": {
+    "deck": {
+      "minimum": 1,
+      "title": "Deck",
+      "type": "integer"
+    },
+    "detected_count": {
+      "minimum": 0,
+      "title": "Detected Count",
+      "type": "integer"
+    },
+    "expected_count": {
+      "minimum": 0,
+      "title": "Expected Count",
+      "type": "integer"
+    },
+    "section": {
+      "minLength": 1,
+      "title": "Section",
+      "type": "string"
+    }
+  },
+  "required": [
+    "deck",
+    "section",
+    "expected_count",
+    "detected_count"
+  ],
+  "title": "LifeformMismatch",
+  "type": "object"
+}
