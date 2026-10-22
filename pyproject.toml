@@ -2,6 +2,7 @@
 name = "moriarty"
 version = "0.0.0"
 description = "A playground for comparing agentic-system designs against a simulated starship."
+license = "MIT"
 requires-python = ">=3.14,<3.15"
 dependencies = []
 
