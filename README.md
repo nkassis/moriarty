@@ -29,6 +29,22 @@ Jaeger at http://localhost:16686 shows one trace per run: service `holodeck`, op
 
 Developer tooling is documented in [AGENT.md](AGENT.md). The design is in [docs/architecture.md](docs/architecture.md).
 
+## Decisions
+
+The binding design decisions, with the alternative and cost of each. M0: [docs/decisions-m0.md](docs/decisions-m0.md).
+
+- [3. The clock lives in the Holodeck, not the Ship](docs/decisions-m0.md#3-the-clock-lives-in-the-holodeck-not-the-ship)
+- [4. The relay is a single-active consumer on the Holodeck exchange](docs/decisions-m0.md#4-the-relay-is-a-single-active-consumer-on-the-holodeck-exchange)
+- [5. The first tick is 1, and `ship_time` counts ticks elapsed](docs/decisions-m0.md#5-the-first-tick-is-1-and-ship_time-counts-ticks-elapsed)
+- [6. A station is idle for tick N only if it reported idle after tick N went out](docs/decisions-m0.md#6-a-station-is-idle-for-tick-n-only-if-it-reported-idle-after-tick-n-went-out)
+- [7. A lockstep tick advances when the wall budget expires, even if stations are busy](docs/decisions-m0.md#7-a-lockstep-tick-advances-when-the-wall-budget-expires-even-if-stations-are-busy)
+- [8. Ratio mode never skips a tick and caps catch-up at 10 ticks](docs/decisions-m0.md#8-ratio-mode-never-skips-a-tick-and-caps-catch-up-at-10-ticks)
+- [11. A reading's `source` is a closed enum of system names](docs/decisions-m0.md#11-a-readings-source-is-a-closed-enum-of-system-names)
+- [12. Contract enums are hand-written and checked against the vocabulary by a test](docs/decisions-m0.md#12-contract-enums-are-hand-written-and-checked-against-the-vocabulary-by-a-test)
+- [13. `world.persons` records who is expected; sensors report who is detected](docs/decisions-m0.md#13-worldpersons-records-who-is-expected-sensors-report-who-is-detected)
+- [14. One trace per run, with each tick as a span under it](docs/decisions-m0.md#14-one-trace-per-run-with-each-tick-as-a-span-under-it)
+- [15. The default RabbitMQ user is an administrator](docs/decisions-m0.md#15-the-default-rabbitmq-user-is-an-administrator)
+
 ## License
 
 MIT, see [LICENSE](LICENSE). Third-party dependency licenses are listed in [docs/licenses.md](docs/licenses.md).
