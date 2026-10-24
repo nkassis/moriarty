@@ -26,7 +26,7 @@ Under 150 words. Numbered, number never reused.
 - **Why** in one or two sentences, with the constraint that forced it.
 - **Instead of** names the alternative that was seriously considered and the specific reason it lost. One alternative is usual. Do not list options nobody weighed.
 - **Cost** states what we gave up or what this makes harder. Every decision has one. An entry with no cost is incomplete.
-- **Status** is Accepted, or Superseded by N. Never delete or rewrite an entry; add a new one and mark the old one.
+- **Status** is Accepted, or Superseded by N (or by a named PR when no decision replaces it). Never delete or rewrite an entry; add a new one and mark the old one.
 
 ## Voice
 
