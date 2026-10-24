@@ -1,0 +1,2 @@
+# Two weeks, in minutes: the same freshness rule as `exclude-newer` in the root pyproject.toml.
+minimumReleaseAge: 20160

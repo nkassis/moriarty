@@ -34,3 +34,19 @@ repos:
         language: system
         stages: [pre-commit, pre-push]
         pass_filenames: false
+
+  # Bridge: the same pnpm scripts CI runs, only when bridge files are staged.
+  - repo: local
+    hooks:
+      - id: bridge-lint
+        name: bridge lint
+        entry: bash -c 'cd bridge && corepack pnpm lint'
+        language: system
+        files: ^bridge/
+        pass_filenames: false
+      - id: bridge-format
+        name: bridge format
+        entry: bash -c 'cd bridge && corepack pnpm format:check'
+        language: system
+        files: ^bridge/
+        pass_filenames: false

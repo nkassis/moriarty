@@ -37,3 +37,31 @@ jobs:
           uv run python -m ship.contract.generate
           git add -N ship/contract/schema/
           git diff --exit-code ship/contract/schema/
+
+  bridge:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bridge
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: bridge/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: bridge/.nvmrc
+          cache: pnpm
+          cache-dependency-path: bridge/pnpm-lock.yaml
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Lint
+        run: pnpm lint
+      - name: Format
+        run: pnpm format:check
+      - name: Test
+        run: pnpm test
+      - name: Token drift
+        run: pnpm gen:tokens:check

@@ -1,0 +1,82 @@
+.my-agent {
+    /* Bundle-only values (no token). */
+    --my-agent-max-width: 320px;
+    --my-agent-role-pad-top: 2px;
+
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: var(--my-agent-max-width);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    text-align: left;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--crew-soft);
+    color: var(--ink);
+    font-family: var(--font-text);
+}
+.my-agent.clickable {
+    cursor: pointer;
+}
+.my-agent-selected {
+    box-shadow: inset 0 0 0 2px var(--tone);
+}
+.my-agent.clickable:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+}
+.my-agent-band {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    height: var(--bar-height);
+    padding: 0 var(--space-3);
+    background: var(--tone);
+    color: var(--ink-on-band);
+    font-family: var(--type-label-family);
+    font-size: var(--type-label-size);
+    line-height: var(--type-label-line);
+    font-weight: var(--type-label-weight);
+    letter-spacing: var(--type-label-tracking);
+    text-transform: uppercase;
+}
+.my-agent-index {
+    margin-left: var(--space-2);
+    font-size: var(--type-numeral-size);
+    font-weight: var(--type-numeral-weight);
+    letter-spacing: var(--type-numeral-tracking);
+}
+.my-agent-state {
+    font-size: var(--type-numeral-size);
+    font-weight: var(--type-numeral-weight);
+    letter-spacing: var(--type-numeral-tracking);
+}
+.my-agent-body {
+    padding: var(--space-2) var(--space-3) var(--space-3);
+}
+.my-agent-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-2);
+}
+.my-agent-role {
+    font-size: var(--type-small-text-size);
+    line-height: var(--type-small-text-line);
+    color: var(--ink-muted);
+    padding-top: var(--my-agent-role-pad-top);
+}
+.my-agent-activity {
+    margin-top: var(--space-1);
+    font-size: var(--type-body-text-size);
+    line-height: var(--type-body-text-line);
+}
+.my-agent-meta {
+    margin-top: var(--space-1);
+    font-size: var(--type-small-text-size);
+    line-height: var(--type-small-text-line);
+    color: var(--ink-muted);
+}

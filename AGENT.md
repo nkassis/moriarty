@@ -31,6 +31,10 @@ uv run python -m ship.contract.generate
 
 Writes JSON Schema to `ship/contract/schema/`. CI fails if the committed files differ from the output.
 
+## Bridge
+
+The React UI lives in `bridge/` with its own tooling (pnpm, Vite, Vitest, Playwright): see [bridge/AGENT.md](bridge/AGENT.md). Quick check from the repo root: `pnpm -C bridge check`.
+
 ## Run the spine
 
 ```sh

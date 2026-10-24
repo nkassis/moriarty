@@ -1,0 +1,70 @@
+.my-table {
+    /* Bundle-only values (no token). --my-col-width is set per column from the width prop. */
+    --my-table-caption-weight: 600;
+    --my-table-num-size: 14px;
+
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    color: var(--ink);
+    font-family: var(--type-body-text-family);
+    font-size: var(--type-body-text-size);
+    line-height: var(--type-body-text-line);
+}
+.my-table-caption {
+    text-align: left;
+    padding: 0 0 var(--space-2);
+    font-family: var(--type-body-text-family);
+    font-size: var(--type-body-text-size);
+    line-height: var(--type-body-text-line);
+    font-weight: var(--my-table-caption-weight);
+    color: var(--tone);
+    caption-side: top;
+}
+.my-table-th {
+    width: var(--my-col-width, auto);
+    padding: var(--space-1) var(--space-3);
+    text-align: left;
+    background: var(--tone);
+    color: var(--ink-on-band);
+    font-family: var(--type-label-family);
+    font-size: var(--type-label-size);
+    line-height: var(--type-label-line);
+    font-weight: var(--type-label-weight);
+    letter-spacing: var(--type-label-tracking);
+    text-transform: uppercase;
+}
+.my-table-th:first-child {
+    border-radius: var(--radius-pill) 0 0 var(--radius-pill);
+}
+.my-table-th:last-child {
+    border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+}
+.my-table-td {
+    padding: var(--space-2) var(--space-3);
+    border-top: 1px solid var(--hairline);
+}
+.my-table tbody tr:first-child .my-table-td {
+    border-top-color: transparent;
+    padding-top: var(--space-3);
+}
+.my-table .num {
+    text-align: right;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--type-readout-weight);
+    font-size: var(--my-table-num-size);
+}
+.my-table tr.selected .my-table-td {
+    background: var(--crew-soft);
+}
+.my-table tr.clickable {
+    cursor: pointer;
+}
+.my-table tr.clickable:hover .my-table-td {
+    background: var(--surface-200);
+}
+.my-table tr.clickable:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: -2px;
+}

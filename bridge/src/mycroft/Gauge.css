@@ -1,0 +1,62 @@
+.my-gauge {
+    /* Bundle-only values (no token). --my-gauge-height is set per instance from the height prop. */
+    --my-gauge-width: 56px;
+    --my-gauge-cell-min: 2px;
+    --my-gauge-cell-radius: 2px;
+    --my-gauge-label-weight: 600;
+
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    width: var(--my-gauge-width);
+    color: var(--ink);
+}
+.my-gauge-bar {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: var(--band-gap);
+    width: 100%;
+    height: var(--my-gauge-height);
+}
+.my-gauge-bar span {
+    flex: 1 1 0;
+    min-height: var(--my-gauge-cell-min);
+    background: var(--surface-200);
+    border-radius: var(--my-gauge-cell-radius);
+}
+.my-gauge-bar span.z-warn,
+.my-gauge-bar span.z-crit {
+    box-shadow: inset 0 0 0 1px var(--hairline);
+}
+.my-gauge-bar span.on {
+    background: var(--tone);
+}
+.my-gauge-warn .my-gauge-bar span.on {
+    background: var(--status-warn);
+}
+.my-gauge-crit .my-gauge-bar span.on {
+    background: var(--status-crit);
+}
+.my-gauge-label {
+    font-family: var(--type-small-text-family);
+    font-size: var(--type-small-text-size);
+    line-height: var(--type-small-text-line);
+    font-weight: var(--my-gauge-label-weight);
+    color: var(--tone);
+    text-align: center;
+}
+.my-gauge-warn .my-gauge-label {
+    color: var(--status-warn);
+}
+.my-gauge-crit .my-gauge-label {
+    color: var(--status-crit);
+}
+.my-gauge-value {
+    font-family: var(--type-readout-family);
+    font-size: var(--type-readout-size);
+    line-height: var(--type-readout-line);
+    font-weight: var(--type-readout-weight);
+    font-variant-numeric: tabular-nums;
+}

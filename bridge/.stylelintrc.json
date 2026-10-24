@@ -1,0 +1,57 @@
+{
+  "plugins": ["stylelint-declaration-strict-value"],
+  "ignoreFiles": ["src/mycroft/tokens.css", "dist/**"],
+  "rules": {
+    "color-no-hex": true,
+    "color-named": "never",
+    "function-disallowed-list": [
+      "rgb",
+      "rgba",
+      "hsl",
+      "hsla",
+      "hwb",
+      "lab",
+      "lch",
+      "oklab",
+      "oklch",
+      "color"
+    ],
+    "scale-unlimited/declaration-strict-value": [
+      [
+        "/color$/",
+        "background",
+        "fill",
+        "stroke",
+        "font",
+        "font-family",
+        "font-size",
+        "line-height",
+        "letter-spacing",
+        "font-weight",
+        "gap",
+        "row-gap",
+        "column-gap",
+        "/^margin/",
+        "/^padding/",
+        "/radius$/"
+      ],
+      {
+        "expandShorthand": true,
+        "recurseLonghand": true,
+        "ignoreValues": [
+          "0",
+          "auto",
+          "inherit",
+          "initial",
+          "unset",
+          "transparent",
+          "currentColor",
+          "none",
+          "normal"
+        ],
+        "ignoreFunctions": false,
+        "message": "Use a token or a component custom property (var(--...)) for \"${property}\", not \"${value}\"."
+      }
+    ]
+  }
+}
