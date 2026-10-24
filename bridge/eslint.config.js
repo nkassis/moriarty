@@ -19,6 +19,10 @@ export default tseslint.config(
     reactHooks.configs.flat["recommended-latest"],
     jsxA11y.flatConfigs.strict,
     {
+        // AgentCard's `role` prop is the agent's job line (bundle API), not an ARIA role.
+        rules: { "jsx-a11y/aria-role": ["error", { ignoreNonDOM: true }] },
+    },
+    {
         // The design system is self-contained: React, its own files, and the contract enums as types.
         files: ["src/mycroft/**/*.{ts,tsx}"],
         ignores: ["src/mycroft/**/*.test.{ts,tsx}"],

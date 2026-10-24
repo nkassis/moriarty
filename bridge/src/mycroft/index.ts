@@ -7,3 +7,6 @@ export * from "./tokens";
 export { Gauge, type GaugeProps } from "./Gauge";
 export { Readout, type ReadoutProps } from "./Readout";
 export { Tag, type TagProps } from "./Tag";
+export { AgentCard, type AgentCardProps } from "./AgentCard";
+export { Cascade, type CascadeProps } from "./Cascade";
+export { CommLine, type CommLineKind, type CommLineProps } from "./CommLine";

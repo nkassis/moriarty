@@ -1,0 +1,35 @@
+.my-cascade {
+    /* Bundle-only values (no token). --my-cascade-cols is set per instance from the cols prop. */
+    --my-cascade-size: 11px;
+    --my-cascade-line: 14px;
+    --my-cascade-tracking: 0.04em;
+
+    display: inline-grid;
+    grid-template-columns: repeat(var(--my-cascade-cols, 3), auto);
+    gap: 0 var(--space-2);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    background: var(--surface-200);
+}
+.my-cascade-cell {
+    font-family: var(--font-mono);
+    font-size: var(--my-cascade-size);
+    line-height: var(--my-cascade-line);
+    letter-spacing: var(--my-cascade-tracking);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-muted);
+}
+.my-cascade-idle,
+.my-cascade-standby {
+    background: transparent;
+}
+.my-cascade-idle .my-cascade-cell,
+.my-cascade-standby .my-cascade-cell {
+    color: var(--hairline);
+}
+.my-cascade-cell.hot {
+    color: var(--tone);
+}
+.my-cascade-acting .my-cascade-cell.hot {
+    color: var(--ink);
+}

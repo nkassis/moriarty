@@ -2,8 +2,8 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach } from "vitest";
 
-// jsdom has no matchMedia. Tests that need a match override it (see Cascade.test.tsx).
-if (typeof window !== "undefined" && !("matchMedia" in window)) {
+// jsdom does not implement matchMedia. Tests that need a match override it (see Cascade.test.tsx).
+if (typeof window !== "undefined" && typeof window.matchMedia !== "function") {
     Object.defineProperty(window, "matchMedia", {
         writable: true,
         value: (query: string): MediaQueryList =>
