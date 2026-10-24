@@ -1,0 +1,131 @@
+.my-frame {
+    /* Bundle-only offset (no token): lifts the elbow title onto the bar. */
+    --my-frame-title-lift: -6px;
+
+    background: var(--surface-000);
+    color: var(--ink);
+}
+
+/* Quiet (default) */
+.my-frame-quiet {
+    display: block;
+}
+.my-frame-titlebar {
+    display: flex;
+    align-items: center;
+    height: var(--bar-height);
+    padding: 0 var(--space-3);
+    background: var(--tone);
+    border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+}
+.my-frame-quiet-title {
+    margin: 0;
+    color: var(--ink-on-band);
+    font-family: var(--type-label-family);
+    font-size: var(--type-label-size);
+    line-height: var(--type-label-line);
+    font-weight: var(--type-label-weight);
+    letter-spacing: var(--type-label-tracking);
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.my-frame-quiet-index {
+    margin-left: var(--space-2);
+    font-size: var(--type-numeral-size);
+    font-weight: var(--type-numeral-weight);
+    letter-spacing: var(--type-numeral-tracking);
+}
+.my-frame-quiet .my-frame-well {
+    margin-top: var(--band-gap);
+}
+.my-frame-well {
+    padding: var(--space-4);
+    background: var(--surface-100);
+    border-radius: var(--radius-sm);
+    min-height: var(--space-16);
+}
+
+/* Elbow: page header only */
+.my-frame-elbow {
+    display: grid;
+    gap: var(--band-gap);
+    grid-template-columns: calc(var(--rail-width) + var(--radius-elbow-inner)) 1fr;
+    grid-template-rows: auto 1fr;
+}
+.my-elbow {
+    position: relative;
+    width: calc(var(--rail-width) + var(--radius-elbow-inner));
+    height: calc(var(--bar-height) + var(--radius-elbow-inner));
+    background: var(--tone);
+    border-top-left-radius: var(--radius-elbow-outer);
+}
+.my-elbow::after {
+    content: "";
+    position: absolute;
+    left: var(--rail-width);
+    top: var(--bar-height);
+    right: 0;
+    bottom: 0;
+    background: var(--surface-000);
+    border-top-left-radius: var(--radius-elbow-inner);
+}
+.my-frame-head {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--band-gap);
+    height: calc(var(--bar-height) + var(--radius-elbow-inner));
+}
+.my-frame-bar {
+    flex: 1 1 auto;
+    height: var(--bar-height);
+    background: var(--tone);
+    border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+}
+.my-frame-title {
+    margin: 0 0 0 var(--space-6);
+    color: var(--tone);
+    font-family: var(--type-title-family);
+    font-size: var(--type-title-size);
+    line-height: var(--type-title-line);
+    font-weight: var(--type-title-weight);
+    letter-spacing: var(--type-title-tracking);
+    text-transform: uppercase;
+    white-space: nowrap;
+    transform: translateY(var(--my-frame-title-lift));
+}
+.my-frame-title-index {
+    margin-left: var(--space-2);
+    font-size: var(--type-numeral-size);
+    line-height: var(--type-numeral-line);
+    font-weight: var(--type-numeral-weight);
+    letter-spacing: var(--type-numeral-tracking);
+    color: var(--ink-muted);
+    vertical-align: middle;
+}
+.my-frame-rail {
+    justify-self: start;
+    display: flex;
+}
+.my-frame-rail .my-rail {
+    align-self: stretch;
+}
+.my-frame-footer {
+    grid-template-rows: auto 1fr auto;
+}
+.my-elbow-bottom {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: var(--radius-elbow-outer);
+}
+.my-elbow-bottom::after {
+    top: 0;
+    bottom: var(--bar-height);
+    border-top-left-radius: 0;
+    border-bottom-left-radius: var(--radius-elbow-inner);
+}
+.my-frame-foot {
+    display: flex;
+    align-items: flex-end;
+    height: calc(var(--bar-height) + var(--radius-elbow-inner));
+}

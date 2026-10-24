@@ -1,0 +1,46 @@
+/* Mycroft shared rules, ported from docs/design/mycroft/components/bundle.css.
+   Every value is a token from tokens.css; component files only arrange them.
+   Type rule: display (Antonio) only on bands, chips and titles; text (Source Sans 3) for anything read;
+   mono only for values. */
+
+.my-tone-primary {
+    --tone: var(--band-primary);
+}
+.my-tone-secondary {
+    --tone: var(--band-secondary);
+}
+.my-tone-tertiary {
+    --tone: var(--band-tertiary);
+}
+.my-tone-quiet {
+    --tone: var(--band-quiet);
+}
+.my-tone-accent {
+    --tone: var(--band-accent);
+}
+.my-tone-command {
+    --tone: var(--crew-command);
+}
+.my-tone-ops {
+    --tone: var(--crew-ops);
+}
+.my-tone-science {
+    --tone: var(--crew-science);
+}
+.my-level-crit {
+    --tone: var(--status-crit);
+}
+.my-level-warn {
+    --tone: var(--status-warn);
+}
+
+/* Shared text recipes. */
+.my-label {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+}
+.my-text {
+    font-family: var(--type-body-text-family);
+    font-size: var(--type-body-text-size);
+    line-height: var(--type-body-text-line);
+}

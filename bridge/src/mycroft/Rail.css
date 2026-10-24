@@ -1,0 +1,52 @@
+/* Rail: navigation only. */
+.my-rail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--band-gap);
+    width: var(--rail-width);
+}
+.my-rail-seg {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    height: var(--space-12);
+    padding: 0 var(--space-3) var(--space-1);
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: var(--tone);
+    color: var(--ink-on-band);
+    font-family: var(--type-label-family);
+    font-size: var(--type-label-size);
+    line-height: var(--type-label-line);
+    font-weight: var(--type-label-weight);
+    letter-spacing: var(--type-label-tracking);
+    text-transform: uppercase;
+    cursor: pointer;
+    appearance: none;
+    text-align: right;
+}
+.my-rail-seg-tall {
+    height: var(--space-16);
+}
+.my-rail-seg-fill {
+    flex: 1 1 auto;
+    min-height: var(--space-12);
+}
+.my-rail-seg-selected {
+    background: var(--band-accent);
+}
+.my-rail-seg:hover,
+.my-rail-seg:active {
+    background: var(--band-active);
+}
+.my-rail-seg:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+}
+.my-rail-index {
+    font-size: var(--type-numeral-size);
+    line-height: var(--type-numeral-line);
+    font-weight: var(--type-numeral-weight);
+    letter-spacing: var(--type-numeral-tracking);
+}
