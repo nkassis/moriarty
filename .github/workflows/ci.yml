@@ -63,3 +63,5 @@ jobs:
         run: pnpm format:check
       - name: Test
         run: pnpm test
+      - name: Token drift
+        run: pnpm gen:tokens:check
