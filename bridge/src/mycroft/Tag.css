@@ -1,0 +1,22 @@
+/* The .my-tl-from pill from bundle.css, as a standalone chip. */
+.my-tag {
+    /* Bundle-only values (no token). */
+    --my-tag-height: 20px;
+    --my-tag-pad-top: 3px;
+    --my-tag-pad-bottom: 1px;
+
+    display: inline-block;
+    box-sizing: border-box;
+    height: var(--my-tag-height);
+    padding: var(--my-tag-pad-top) var(--space-2) var(--my-tag-pad-bottom);
+    border-radius: var(--radius-pill);
+    background: var(--tone);
+    color: var(--ink-on-band);
+    font-family: var(--type-numeral-family);
+    font-size: var(--type-numeral-size);
+    line-height: var(--type-numeral-line);
+    font-weight: var(--type-label-weight);
+    letter-spacing: var(--type-numeral-tracking);
+    text-transform: uppercase;
+    white-space: nowrap;
+}
