@@ -1,0 +1,112 @@
+/* Mycroft — generated from tokens.json */
+:root {
+  --surface-000: #000000;
+  --surface-100: #0c0c12;
+  --surface-200: #17171f;
+  --hairline: #2b2b38;
+  --ink: #f4f1e8;
+  --ink-muted: #aaa8b6;
+  --ink-on-band: #000000;
+  --band-primary: #ff9f3d;
+  --band-secondary: #9d9dff;
+  --band-tertiary: #ffcf9e;
+  --band-quiet: #c9656b;
+  --band-accent: #cfa0d6;
+  --band-active: #f8fbdb;
+  --crew-command: #d4514f;
+  --crew-ops: #d9b23a;
+  --crew-science: #3aa9a2;
+  --crew-soft: #1e1e2a;
+  --status-ok: #5fd6a8;
+  --status-warn: #ffd23f;
+  --status-crit: #ff3f3f;
+  --status-info: var(--band-secondary);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --radius-sm: 4px;
+  --radius-elbow-inner: 24px;
+  --radius-elbow-outer: 48px;
+  --radius-pill: 999px;
+  --rail-width: 160px;
+  --bar-height: 24px;
+  --band-gap: 4px;
+  --control-height: 32px;
+  --chip-width: 112px;
+  --font-display: "Antonio", "Oswald", "Arial Narrow", sans-serif;
+  --font-text: "Source Sans 3", "Source Sans Pro", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+[data-theme="yellow-alert"] {
+  --surface-000: #000000;
+  --surface-100: #121006;
+  --surface-200: #1e1a08;
+  --hairline: #3a3210;
+  --ink: #fff7dc;
+  --ink-muted: #c9bb8a;
+  --ink-on-band: #000000;
+  --band-primary: #ffcc33;
+  --band-secondary: #e0a92b;
+  --band-tertiary: #fff0a8;
+  --band-quiet: #b8923a;
+  --band-accent: #f5e27a;
+  --band-active: #fffbe6;
+  --crew-soft: #1e1e2a;
+}
+[data-theme="red-alert"] {
+  --surface-000: #000000;
+  --surface-100: #150505;
+  --surface-200: #220808;
+  --hairline: #3d1010;
+  --ink: #ffecec;
+  --ink-muted: #d99c9c;
+  --ink-on-band: #000000;
+  --band-primary: #e8362e;
+  --band-secondary: #ff6b5e;
+  --band-tertiary: #ffb3a7;
+  --band-quiet: #c96a6a;
+  --band-accent: #ff8f7a;
+  --band-active: #ffe3df;
+  --crew-soft: #1e1e2a;
+  --status-ok: #5fd6a8;
+  --status-warn: #ffd23f;
+  --status-crit: #ff3f3f;
+}
+[data-theme="report"] {
+  --surface-000: #ffffff;
+  --surface-100: #f4f2ec;
+  --surface-200: #e9e6dd;
+  --hairline: #cfcbc0;
+  --ink: #1a1a1f;
+  --ink-muted: #5c5a66;
+  --ink-on-band: #ffffff;
+  --band-primary: #b35500;
+  --band-secondary: #4b4bd6;
+  --band-tertiary: #8a5a2b;
+  --band-quiet: #8f3a3f;
+  --band-accent: #7a3f86;
+  --band-active: #2b2b38;
+  --crew-command: #9e2a2a;
+  --crew-ops: #7a5c00;
+  --crew-science: #146e6a;
+  --crew-soft: #dedbe8;
+  --status-ok: #157a52;
+  --status-warn: #8a6a00;
+  --status-crit: #c42020;
+}
+.type-display { font-family: var(--font-display); font-size: 64px; line-height: 60px; font-weight: 700; letter-spacing: 0.01em; }
+.type-title { font-family: var(--font-display); font-size: 32px; line-height: 34px; font-weight: 700; letter-spacing: 0.01em; }
+.type-heading { font-family: var(--font-display); font-size: 22px; line-height: 24px; font-weight: 600; letter-spacing: 0.02em; }
+.type-label { font-family: var(--font-display); font-size: 14px; line-height: 16px; font-weight: 600; letter-spacing: 0.04em; }
+.type-numeral { font-family: var(--font-display); font-size: 12px; line-height: 14px; font-weight: 500; letter-spacing: 0.06em; }
+.type-body-text { font-family: var(--font-text); font-size: 15px; line-height: 22px; font-weight: 400; }
+.type-small-text { font-family: var(--font-text); font-size: 13px; line-height: 18px; font-weight: 400; }
+.type-body { font-family: var(--font-mono); font-size: 14px; line-height: 22px; font-weight: 400; }
+.type-readout { font-family: var(--font-mono); font-size: 15px; line-height: 20px; font-weight: 500; }
+.type-caption { font-family: var(--font-mono); font-size: 12px; line-height: 16px; font-weight: 400; letter-spacing: 0.02em; }
