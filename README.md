@@ -8,7 +8,7 @@ Because the Ship is a fixed environment with a documented wire contract, any cre
 
 ## Running locally
 
-What exists today: the local infrastructure (RabbitMQ, Postgres with pgvector, an OpenTelemetry collector, Jaeger), the logical clock, and the spine from the simulation through the bus to the Ship's relay. A run seeds the world, ticks the clock, and emits one lifeform-mismatch reading at tick 10, which the relay validates and publishes on `subspace`. There is no crew, no ship system and no UI yet.
+What exists today: the local infrastructure (RabbitMQ, Postgres with pgvector, an OpenTelemetry collector, Jaeger), the logical clock, and the spine from the simulation through the bus to the Ship's relay. A run seeds the world, ticks the clock, and emits one lifeform-mismatch reading at tick 10, which the relay validates and publishes on `subspace`. There is no crew and no ship system yet. `bridge/` holds the Mycroft design system as React components and a `/kit` page that renders them; the bridge screens themselves come later (see [bridge/AGENT.md](bridge/AGENT.md)).
 
 ```sh
 uv python install 3.14

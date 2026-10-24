@@ -4,7 +4,7 @@ Moriarty is MIT licensed ([LICENSE](../LICENSE)). Current as of M0.
 
 ## Scope
 
-`LICENSE` covers everything in this repository, including the design artboards in `docs/design/`. The Mycroft bundle those artboards load (`ds/mycroft/`) is not in the repository. No beat or episode (Doyle) files exist yet; when they land under `scenarios/`, they are covered by the same license.
+`LICENSE` covers everything in this repository, including the design artboards in `docs/design/` and the Mycroft source bundle in `docs/design/mycroft/`. No beat or episode (Doyle) files exist yet; when they land under `scenarios/`, they are covered by the same license.
 
 ## Third-party dependencies
 
@@ -27,9 +27,23 @@ Runtime dependencies of `holodeck` and `ship`, from `uv run pip-licenses --from=
 
 Dev tooling (`black`, `ruff`, `pytest`, `testcontainers`, `pre-commit`, `pip-licenses` and their dependencies) is MIT, BSD, Apache-2.0 or PSF, except `certifi` and `pathspec`, which are MPL-2.0. Neither is shipped.
 
+### Bridge
+
+Runtime dependencies of `bridge/`, from `pnpm licenses list --prod`:
+
+| Package | License | Notes |
+| --- | --- | --- |
+| `react`, `react-dom` | MIT | |
+| `@tanstack/*`, `cookie-es` | MIT | Router and Query |
+| `isbot` | Unlicense | Router dependency |
+| `@fontsource/antonio`, `@fontsource/source-sans-3`, `@fontsource/jetbrains-mono` | OFL-1.1 | Font files, unmodified |
+
+Dev tooling (Vite, TypeScript, ESLint, Stylelint, Prettier, Vitest, Playwright and their dependencies) is MIT, ISC, BSD, Apache-2.0, BlueOak, CC0, MIT-0 or Python-2.0, except three MPL-2.0 packages and one CC-BY-4.0 data package. None is shipped.
+
 ### Not permissive by default
 
 - **psycopg** is LGPL-3.0-only, the version 3.3.6 metadata says so (not "or later"). Moriarty uses it as an unmodified dependency installed from PyPI, which the LGPL permits for MIT code. Do not vendor, copy or patch it. `psycopg[binary]` bundles `libpq`, which is under the PostgreSQL License (permissive).
+- **OFL-1.1 fonts** (bridge). The Open Font License allows bundling the fonts with MIT code; the fonts must not be sold on their own, and a modified version may not keep a reserved font name. They are served unmodified.
 - **certifi** and **pathspec** (MPL-2.0, dev only). MPL is file-level copyleft and applies only to modified copies of their files.
 
 ## CI check
