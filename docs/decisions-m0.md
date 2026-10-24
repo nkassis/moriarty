@@ -2,7 +2,7 @@
 
 Binding answers to the questions raised before M0 code was written. Where one changes the contract, `docs/architecture.md` carries it. Numbers match the questions as asked and are never reused.
 
-Entries are held to the bar in `.claude/rules/decision-log.md`: a competent engineer could have chosen otherwise, reversing would cost more than a day, and each entry names the alternative and the cost. `tests/test_decision_log.py` checks the shape.
+Entries are held to the bar in `.claude/rules/decision-log.md`: a competent engineer could have chosen otherwise, reversing would cost more than a day, and each entry names the alternative and the cost.
 
 ## Clock
 
@@ -18,11 +18,11 @@ Entries are held to the bar in `.claude/rules/decision-log.md`: a competent engi
 
 ### 5. The first tick is 1, and `ship_time` counts ticks elapsed
 
-**Why:** A reading emitted at tick 10 carries `ship_time` 10, and one tick is one ship second, so `HH:MM:SS` renders elapsed ship time with no offset.
+**Why:** A reading emitted at tick 10 carries `ship_time` 10, so tick number and ticks elapsed are the same number everywhere they meet. What a tick is worth in seconds is decision 18.
 
 **Instead of:** zero-based ticks, where the first tick is 0 and the tick number and elapsed time differ by one everywhere they meet.
 
-**Cost:** `ship_time` 0 is run start, but no tick carries it. Episode triggers written `{"at": 0}` (architecture § Holodeck and episodes) must mean "at run start", and the M7 parser has to define that.
+**Cost:** every tick-to-elapsed-time conversion is an off-by-one hazard, and no reading can ever carry `ship_time` 0. "At run start" is a separate concept the episode parser must name.
 
 **Status:** Accepted.
 
@@ -32,17 +32,17 @@ Entries are held to the bar in `.claude/rules/decision-log.md`: a competent engi
 
 **Instead of:** the last reported state per station. Simpler, but the clock can race ahead of a slow station between ticks, which defeats lockstep.
 
-**Cost:** every station reports after every tick, even with nothing to do: one message per station per tick. With no stations registered nothing gates the clock, so it is held to a 10 ms minimum interval rather than a hot loop.
+**Cost:** every station reports after every tick, even with nothing to do: one message per station per tick.
 
 **Status:** Accepted.
 
 ### 7. A lockstep tick advances when the wall budget expires, even if stations are busy
 
-**Why:** One hung model call must not freeze a season. The budget is configurable, default 2.0 s; the clock records which stations missed each tick, which becomes a scorecard column.
+**Why:** One hung model call must not freeze a season. The budget is configurable, default 2.0 s.
 
 **Instead of:** waiting indefinitely. Fully deterministic, but a stuck station stalls the run.
 
-**Cost:** determinism now depends on model latency. A station that misses the budget sees tick N+1's state, so a slow run can diverge from a fast one under the same seed. The 2.0 s default is a guess; tuning against real model latency at M2 confirms or replaces it.
+**Cost:** determinism now depends on model latency. A station that misses the budget sees tick N+1's state, so a slow run can diverge from a fast one under the same seed; the clock records which stations missed each tick so the scorecard can show it. The 2.0 s default is a guess; tuning against real model latency at M2 confirms or replaces it.
 
 **Status:** Accepted.
 
@@ -84,7 +84,7 @@ Entries are held to the bar in `.claude/rules/decision-log.md`: a competent engi
 
 **Why:** `docs/vocabulary.md` is canonical. A test that parses its enum table and fails on any difference gives that guarantee without a build step.
 
-**Instead of:** generating `ship/contract/enums.py` from the Markdown table. Same guarantee, but it puts a Markdown parser and a generated file in the build path.
+**Instead of:** generating `ship/contract/enums.py` from the table. Same guarantee, but a generated enum is invisible to grep and IDE navigation, and at eleven enums the copy is cheaper than the indirection.
 
 **Cost:** an enum change is two edits, table and code. The test reports the drift; a person fixes both sides.
 
@@ -106,7 +106,7 @@ Entries are held to the bar in `.claude/rules/decision-log.md`: a competent engi
 
 **Why:** Debugging a run means following tick 10's chain (Holodeck emit, bus publish, relay consume and validate, publish on `subspace`, consumer) as one tree under its tick. The integration test checks this tree.
 
-**Instead of:** one trace per message flow, the usual shape for messaging. It loses the tick as the parent and scatters a run across one trace per reading.
+**Instead of:** one trace per incident with the tick as an attribute. That is the shape M2 adds as linked roots, but not the primary one in M0, where there are no incidents yet and the tick tree is what the test can check.
 
 **Cost:** a trace grows with the run, and a long ratio-mode run is one very large trace. That trace viewers handle this poorly is a guess, unmeasured so far. Incidents (M2) get their own roots linked to the run trace, so cross-incident views follow links, not parentage.
 
@@ -129,5 +129,27 @@ Entries are held to the bar in `.claude/rules/decision-log.md`: a competent engi
 No remote in M0. Work on `m0/scaffold` and `m0/behaviour`; stop for review after each.
 
 **Status:** Superseded by PR #1 and #2: the repo has a remote, and changes land on `main` by pull request (`docs/security.md` § Rules).
+
+## Configuration
+
+### 18. Tick length is episode configuration, default one second
+
+**Why:** `ship_time` is an integer tick count on the wire and in every episode timing (`at`, `retry_after`, deadlines). What a tick is worth in seconds is part of the scenario's meaning, so it lives in the episode header (`clock.tick_seconds`, default 1.0) and the run manifest copies it. The clock never needs it; display, debrief and scorecard convert, and the scorecard reports seconds so episodes with different tick lengths stay comparable.
+
+**Instead of:** hard-coding one second, which the first fast-paced episode would break; or a run flag, which would let two runs of one episode disagree on what its timings mean.
+
+**Cost:** every tick-to-time conversion has one more input, and a wrong default turns a four-minute episode into a forty-minute one with no error.
+
+**Status:** Accepted.
+
+### 19. `moriarty run` takes an episode and a profile file; `--seed` is the only flag
+
+**Why:** A run is three things: what world (the episode), how it is played (clock mode and ratio, crew, drive, captain policy, a seed), and where (credentials). The second is a reusable profile (`profiles/demo.json`, `profiles/eval.json`) validated by `RunConfig` in the contract so CLI, scenarios screen and harness produce one shape. With no seed given the CLI draws one, prints it first and records it. The manifest holds the resolved profile, episode path and hash, so a run replays from the manifest alone.
+
+**Instead of:** flags for everything, which nobody can reproduce from a shell history; or one file per run including the episode, which makes the file disposable instead of a profile you keep.
+
+**Cost:** two inputs instead of one, a schema to maintain, and the manifest must record both or replay breaks.
+
+**Status:** Accepted.
 
 Retired: 9, 10, 17. Questions 1 and 2 were never recorded here.
