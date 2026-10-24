@@ -1,0 +1,84 @@
+.my-timeline {
+    /* Bundle-only values (no token). */
+    --my-tl-time-col: 72px;
+    --my-tl-mark: 16px;
+    --my-tl-rule: 2px;
+    --my-tl-rule-top: 18px;
+    --my-tl-nudge: 3px;
+    --my-tl-text-gap: 2px;
+    --my-tl-title-weight: 600;
+
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    color: var(--ink);
+    font-family: var(--font-text);
+}
+.my-tl-event {
+    display: grid;
+    grid-template-columns: var(--my-tl-time-col) var(--my-tl-mark) 1fr;
+    gap: 0 var(--space-3);
+    align-items: start;
+    padding-bottom: var(--space-4);
+    position: relative;
+}
+.my-tl-event::before {
+    content: "";
+    position: absolute;
+    left: calc(
+        var(--my-tl-time-col) + var(--space-3) + (var(--my-tl-mark) - var(--my-tl-rule)) / 2
+    );
+    top: var(--my-tl-rule-top);
+    bottom: 0;
+    width: var(--my-tl-rule);
+    background: var(--hairline);
+}
+.my-tl-event:last-child::before {
+    display: none;
+}
+.my-tl-time {
+    padding-top: var(--my-tl-nudge);
+    font-family: var(--type-caption-family);
+    font-size: var(--type-caption-size);
+    line-height: var(--type-caption-line);
+    letter-spacing: var(--type-caption-tracking);
+    color: var(--ink-muted);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+.my-tl-mark {
+    display: block;
+    width: var(--my-tl-mark);
+    height: var(--my-tl-mark);
+    margin-top: var(--my-tl-nudge);
+    border-radius: var(--radius-pill);
+    background: var(--tone);
+}
+.my-tl-ok .my-tl-mark {
+    background: var(--status-ok);
+}
+.my-tl-warn .my-tl-mark {
+    background: var(--status-warn);
+}
+.my-tl-crit .my-tl-mark {
+    background: var(--status-crit);
+}
+.my-tl-info .my-tl-mark {
+    background: var(--status-info);
+}
+.my-tl-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+.my-tl-title {
+    font-size: var(--type-body-text-size);
+    line-height: var(--type-body-text-line);
+    font-weight: var(--my-tl-title-weight);
+}
+.my-tl-text {
+    margin-top: var(--my-tl-text-gap);
+    font-size: var(--type-body-text-size);
+    line-height: var(--type-body-text-line);
+}
