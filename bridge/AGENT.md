@@ -31,6 +31,7 @@ Node version is pinned in `.nvmrc` (24). `pnpm-workspace.yaml` sets `minimumRele
 
 - Vitest uses jsdom and `@testing-library/jest-dom` matchers, set up in `test/setup.ts`.
 - Playwright config is `playwright.config.ts`; specs in `test/e2e/`. Motion is reduced so the Cascade is still.
+- `test/e2e/kit.spec.ts` screenshots each theme section of `/kit?dialog=open` against the baselines in `test/e2e/kit.spec.ts-snapshots/` (Linux, Chromium). CI does not run e2e yet; run `pnpm e2e` locally when a component or the kit changes, and `pnpm e2e --update-snapshots` only for an intended visual change.
 - One unit file: `pnpm test src/mycroft/CommLine.test.tsx`. One e2e spec: `pnpm e2e test/e2e/kit.spec.ts`.
 
 ## Tokens

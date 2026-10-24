@@ -1,0 +1,108 @@
+/* Kit page layout only. Components bring their own styles. */
+body {
+    margin: 0;
+    background: var(--surface-000);
+    color: var(--ink);
+    font-family: var(--font-text);
+}
+.kit {
+    /* Kit-only dimensions (no token). */
+    --kit-dialog-box-height: 360px;
+    --kit-card-min: 260px;
+    --kit-col-min: 360px;
+    --kit-table-col: 660px;
+    --kit-strong: 600;
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    padding: var(--space-8) 0;
+}
+.kit-title {
+    margin: 0 var(--space-8);
+    color: var(--band-primary);
+    text-transform: uppercase;
+}
+.kit-theme {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    padding: var(--space-8);
+    background: var(--surface-000);
+    color: var(--ink);
+}
+.kit-theme-name {
+    margin: 0;
+    color: var(--band-primary);
+    text-transform: uppercase;
+}
+.kit-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+}
+.kit-row + .kit-row,
+.kit-readouts + .kit-row {
+    margin-top: var(--space-4);
+}
+.kit-top {
+    align-items: flex-start;
+    gap: var(--space-4);
+}
+.kit-spread {
+    justify-content: space-between;
+    margin-bottom: var(--space-2);
+}
+.kit-readouts {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-5);
+}
+.kit-readouts .my-readout + .my-readout {
+    margin-top: 0;
+}
+.kit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(var(--kit-col-min), 1fr));
+    gap: var(--space-8);
+    align-items: start;
+}
+/* Comms | Incidents | Captain and Budget, as on the artboard; the middle fits the table's widths. */
+.kit-grid:not(.kit-grid-2) {
+    grid-template-columns: minmax(0, 1fr) var(--kit-table-col) minmax(0, 1fr);
+}
+.kit-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+}
+.kit-grow {
+    flex: 1 1 auto;
+    gap: 0;
+}
+.kit-crew {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--kit-card-min), 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+}
+.kit-gap {
+    height: var(--space-4);
+}
+.kit-strong {
+    margin: 0;
+    font-weight: var(--kit-strong);
+}
+.kit-muted {
+    margin: var(--space-1) 0 var(--space-4);
+    color: var(--ink-muted);
+}
+
+/* A transform makes the box the containing block for the Dialog's fixed scrim. */
+.kit-dialog-box {
+    position: relative;
+    height: var(--kit-dialog-box-height);
+    overflow: hidden;
+    transform: translateZ(0);
+}
