@@ -5,10 +5,12 @@ Developer tooling for the bridge. Commands run from `bridge/`. Package manager i
 ## Setup
 
 ```sh
-corepack enable                               # or install the pinned pnpm another way
+npm i -g pnpm@12.11.2                         # the version in package.json#packageManager
 pnpm install --frozen-lockfile
 pnpm exec playwright install chromium         # first time only
 ```
+
+Or use pnpm's standalone installer: `curl -fsSL https://get.pnpm.io/install.sh | env PNPM_VERSION=12.11.2 sh -`. When `packageManager` changes, install the new version the same way. Corepack is not used: Node removes it from the distribution after Node 24.
 
 Node version is pinned in `.nvmrc` (24). `pnpm-workspace.yaml` sets `minimumReleaseAge` to two weeks, the same freshness rule as the Python side.
 
@@ -40,7 +42,7 @@ Node version is pinned in `.nvmrc` (24). `pnpm-workspace.yaml` sets `minimumRele
 
 ## Pre-commit
 
-The root `.pre-commit-config.yaml` runs `pnpm lint` and `pnpm format:check` (through `corepack`, so no global pnpm is needed) when files under `bridge/` are staged. Do not bypass with `--no-verify`.
+The root `.pre-commit-config.yaml` runs `pnpm lint` and `pnpm format:check` when files under `bridge/` are staged; `pnpm` must be on `PATH` (see Setup). Do not bypass with `--no-verify`.
 
 ## Troubleshooting
 
