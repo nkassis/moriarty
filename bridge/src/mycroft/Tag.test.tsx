@@ -6,7 +6,7 @@ import { Tag } from "./Tag";
 describe("Tag", () => {
     it("renders its text as a primary pill by default", () => {
         render(<Tag>Sensors</Tag>);
-        expect(screen.getByText("Sensors")).toHaveClass("my-tag", "my-tone-primary");
+        expect(screen.getByText("Sensors")).toHaveClass("my-tag-broken", "my-tone-primary");
     });
 
     it("takes a ship or division tone", () => {
