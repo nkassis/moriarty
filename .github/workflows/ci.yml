@@ -65,3 +65,40 @@ jobs:
         run: pnpm test
       - name: Token drift
         run: pnpm gen:tokens:check
+
+  bridge-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Browsers and fonts come with the image; its tag must match @playwright/test in bridge/package.json.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    defaults:
+      run:
+        working-directory: bridge
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: bridge/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: bridge/.nvmrc
+          cache: pnpm
+          cache-dependency-path: bridge/pnpm-lock.yaml
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm build
+      - name: E2E
+        # The html reporter only adds a report to upload; the config's list reporter still prints.
+        run: pnpm e2e --reporter=list,html
+        env:
+          PLAYWRIGHT_HTML_OPEN: never
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: bridge/playwright-report/
+          retention-days: 7

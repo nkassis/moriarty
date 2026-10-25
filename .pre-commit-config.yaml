@@ -40,13 +40,13 @@ repos:
     hooks:
       - id: bridge-lint
         name: bridge lint
-        entry: bash -c 'cd bridge && corepack pnpm lint'
+        entry: pnpm -C bridge lint
         language: system
         files: ^bridge/
         pass_filenames: false
       - id: bridge-format
         name: bridge format
-        entry: bash -c 'cd bridge && corepack pnpm format:check'
+        entry: pnpm -C bridge format:check
         language: system
         files: ^bridge/
         pass_filenames: false

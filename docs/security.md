@@ -4,7 +4,7 @@ What keeps secrets and junk off `main`, and what to do when a check fires.
 
 ## Rules
 
-- `main` is protected: changes arrive by pull request; direct push and force-push are off; the `check` and `TruffleHog (verified secrets)` checks must pass; the branch must be up to date with `main` before merge.
+- `main` is protected: changes arrive by pull request; direct push and force-push are off; the `check`, `bridge`, `bridge-e2e` and `TruffleHog (verified secrets)` checks must pass; the branch must be up to date with `main` before merge.
 - No credentials in the tree. `infra/.env` is ignored; `infra/.env.example` is committed with placeholder values only. Provider keys live in the gateway's environment, never in a crew.
 - No franchise names, ship names, registry numbers, insignia or stardates. Reviewers check this by hand; there is no linter for it.
 - Docs changes carry the same bar as code: the writing standard in `docs/architecture.md` § Developer documentation.
@@ -61,7 +61,7 @@ False positives are rare with `--results=verified`. If one happens, exclude the 
 Settings → Branches → Add rule for `main`:
 
 - Require a pull request before merging; 0 required approvals while it is one person, 1 when a second contributor joins.
-- Require status checks to pass: `check` (lint, format, tests, schema drift) and `TruffleHog (verified secrets)`. Require branches to be up to date.
+- Require status checks to pass: `check` (Python lint, format, tests, schema drift), `bridge` (typecheck, lint, format, unit tests, token drift), `bridge-e2e` (Playwright screenshots of `/kit`) and `TruffleHog (verified secrets)`. Require branches to be up to date.
 - Require conversation resolution.
 - Block force pushes. Do not allow deletions.
 - Do not allow bypassing the above settings (includes admins).
@@ -72,7 +72,7 @@ The same via `gh`:
 gh api -X PUT repos/nkassis/moriarty/branches/main/protection \
   --input - <<'JSON'
 {
-  "required_status_checks": {"strict": true, "contexts": ["check", "TruffleHog (verified secrets)"]},
+  "required_status_checks": {"strict": true, "contexts": ["check", "bridge", "bridge-e2e", "TruffleHog (verified secrets)"]},
   "enforce_admins": true,
   "required_pull_request_reviews": {"required_approving_review_count": 0},
   "restrictions": null,
@@ -83,4 +83,4 @@ gh api -X PUT repos/nkassis/moriarty/branches/main/protection \
 JSON
 ```
 
-Check names are the job `name:` values in `.github/workflows/` (`check` in `ci.yml`, `TruffleHog (verified secrets)` in `secret-scan.yml`). Adjust the list when CI jobs are renamed.
+Check names are the job `name:` values in `.github/workflows/`, or the job id when a job has no `name:` (`check`, `bridge` and `bridge-e2e` in `ci.yml`, `TruffleHog (verified secrets)` in `secret-scan.yml`). Adjust the list when CI jobs are renamed.
