@@ -48,6 +48,6 @@ Dev tooling (Vite, TypeScript, ESLint, Stylelint, Prettier, Vitest, Playwright a
 
 ## CI check
 
-The `check` workflow runs `pip-licenses` and fails on any GPL or AGPL package. LGPL and MPL pass. Matching is exact on license names, so the list in `.github/workflows/ci.yml` names each SPDX identifier and PyPI classifier spelling. A package that declares only a compound expression such as `MIT AND GPL-3.0-only` does not match. Check new dependencies' licenses by hand in review.
+The `python-check` CI job runs `pip-licenses` and fails on any GPL or AGPL package. LGPL and MPL pass. Matching is exact on license names, so the list in `.github/workflows/ci.yml` names each SPDX identifier and PyPI classifier spelling. A package that declares only a compound expression such as `MIT AND GPL-3.0-only` does not match. Check new dependencies' licenses by hand in review.
 
 To run it locally, copy the `Licenses` step's command from `.github/workflows/ci.yml`.

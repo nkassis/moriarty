@@ -4,7 +4,7 @@ What keeps secrets and junk off `main`, and what to do when a check fires.
 
 ## Rules
 
-- `main` is protected: changes arrive by pull request; direct push and force-push are off; the `check`, `bridge`, `bridge-e2e` and `TruffleHog (verified secrets)` checks must pass; the branch must be up to date with `main` before merge.
+- `main` is protected: changes arrive by pull request; direct push and force-push are off; the `ci-ok` check must pass; the branch must be up to date with `main` before merge.
 - No credentials in the tree. `infra/.env` is ignored; `infra/.env.example` is committed with placeholder values only. Provider keys live in the gateway's environment, never in a crew.
 - No franchise names, ship names, registry numbers, insignia or stardates. Reviewers check this by hand; there is no linter for it.
 - Docs changes carry the same bar as code: the writing standard in `docs/architecture.md` § Developer documentation.
@@ -16,9 +16,10 @@ Two layers, both TruffleHog with `--results=verified`, so a report means a crede
 | Layer | When | Scope |
 | --- | --- | --- |
 | pre-commit hook | `git commit`, `git push` | staged diff / pushed range |
-| GitHub Action `secret-scan` | every push and PR | commits added by the push or PR |
+| GitHub Actions: `secret-scan` job in `ci.yml` | every PR and push to `main` | commits added by the PR or push |
+| GitHub Actions: `secret-scan-push` in `secret-scan.yml` | push to any other branch | commits added by the push |
 
-GitHub's own push protection is free only for public repositories (user-level protection) or with a paid GitHub Secret Protection licence on Team/Enterprise organizations. This repo is private under a personal account, so the pre-commit hook and the Action are the two layers. When the repo goes public, user-level push protection applies automatically.
+GitHub's own push protection is free only for public repositories (user-level protection) or with a paid GitHub Secret Protection licence on Team/Enterprise organizations. This repo is private under a personal account, so the pre-commit hook and the Actions are the two layers. When the repo goes public, user-level push protection applies automatically.
 
 ### Local setup
 
@@ -61,7 +62,7 @@ False positives are rare with `--results=verified`. If one happens, exclude the 
 Settings → Branches → Add rule for `main`:
 
 - Require a pull request before merging; 0 required approvals while it is one person, 1 when a second contributor joins.
-- Require status checks to pass: `check` (Python lint, format, tests, schema drift), `bridge` (typecheck, lint, format, unit tests, token drift), `bridge-e2e` (Playwright screenshots of `/kit`) and `TruffleHog (verified secrets)`. Require branches to be up to date.
+- Require status checks to pass: `ci-ok` only. Require branches to be up to date.
 - Require conversation resolution.
 - Block force pushes. Do not allow deletions.
 - Do not allow bypassing the above settings (includes admins).
@@ -72,7 +73,7 @@ The same via `gh`:
 gh api -X PUT repos/nkassis/moriarty/branches/main/protection \
   --input - <<'JSON'
 {
-  "required_status_checks": {"strict": true, "contexts": ["check", "bridge", "bridge-e2e", "TruffleHog (verified secrets)"]},
+  "required_status_checks": {"strict": true, "contexts": ["ci-ok"]},
   "enforce_admins": true,
   "required_pull_request_reviews": {"required_approving_review_count": 0},
   "restrictions": null,
@@ -83,4 +84,13 @@ gh api -X PUT repos/nkassis/moriarty/branches/main/protection \
 JSON
 ```
 
-Check names are the job `name:` values in `.github/workflows/`, or the job id when a job has no `name:` (`check`, `bridge` and `bridge-e2e` in `ci.yml`, `TruffleHog (verified secrets)` in `secret-scan.yml`). Adjust the list when CI jobs are renamed.
+Required checks are an allowlist of job names, so each new job used to need a settings change; the aggregate keeps the list to one name. `ci-ok` in `ci.yml` needs every other job there and fails if any of them failed, was cancelled or was skipped:
+
+| Job | Runs |
+| --- | --- |
+| `python-check` | ruff, black --check, pytest, contract schema drift, licences |
+| `bridge-check` | tsc, ESLint, Stylelint, Prettier, Vitest, token drift |
+| `bridge-e2e` | Playwright screenshots of `/kit` in the Playwright container |
+| `secret-scan` | TruffleHog, `--results=verified` |
+
+A new CI job goes into `ci-ok`'s `needs:` in the same PR; the branch rule does not change.
