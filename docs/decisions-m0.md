@@ -92,7 +92,7 @@ Entries are held to the bar in `.claude/rules/decision-log.md`: a competent engi
 
 ### 13. `world.persons` records who is expected; sensors report who is detected
 
-**Why:** The lifeform-mismatch reading compares `expected_present` from the manifest with `detected_count` from the sensor view. Keeping the two apart lets M7 add unlisted lifeforms and sensor noise to detection without touching the manifest. The observable view drops `flags`, which hold hidden truth.
+**Why:** The lifeform-mismatch reading compares `expected_present` from the manifest with `detected_count` from the sensor view. Keeping the two apart lets M2+ add unlisted lifeforms and sensor noise to detection without touching the manifest. The observable view drops `flags`, which hold hidden truth.
 
 **Instead of:** deriving both counts from the same rows. Simpler, but then the manifest and the sensors can never disagree, and that disagreement is the scenario.
 
@@ -116,7 +116,7 @@ Entries are held to the bar in `.claude/rules/decision-log.md`: a competent engi
 
 ### 15. The default RabbitMQ user is an administrator
 
-**Why:** The Ship creates per-crew users with topic permissions at M3, which needs the `administrator` tag. Crew users get only the topic permissions in `docs/architecture.md`.
+**Why:** The Ship creates per-crew users with topic permissions at M2+, which needs the `administrator` tag. Crew users get only the topic permissions in `docs/architecture.md`.
 
 **Instead of:** a separate provisioning user held only by the Ship, with `moriarty` unprivileged. With no crew users to provision in M0, a second credential pair in `infra/.env` buys nothing yet.
 
