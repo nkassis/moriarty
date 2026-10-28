@@ -52,6 +52,16 @@ See `docs/architecture.md` § Tech stack and repo layout. Create directories onl
 - Run the check in `AGENTS.md` § Check before declaring anything done.
 - Do not add dependencies without saying why in the PR.
 
+## Claude Code hooks
+
+`.claude/settings.json` runs these; a blocking hook (exit 2) feeds its message back until the problem is fixed:
+- **PreToolUse** (Bash): `.claude/hooks/guard-bash.sh` blocks committing on main, pushing to main, force pushing anywhere and deleting main. It reads the command line, so it catches mistakes, not bypasses.
+- **PostToolUse** (Edit/Write): `.claude/hooks/check-python.sh edit` runs Black on the edited Python file, then Ruff; findings block.
+- **Stop**: `.claude/hooks/check-python.sh stop` runs `ruff check .` before Claude may finish.
+- **Read deny list**: `.env` variants, `*.pem`, `*.key`, `~/.ssh` and `~/.aws` are unreadable; `infra/.env.example` stays readable.
+
+The hooks need `uv`; `jq` is used if present, else `python3`. Bridge files have no Claude hook yet; the bridge pre-commit hooks and CI cover them.
+
 ## Linear
 
 Work is tracked in Linear (team NIM, project Moriarty). Issue keys look like NIM-12.
