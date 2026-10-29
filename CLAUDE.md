@@ -10,7 +10,7 @@ Read `docs/architecture.md` before any work on `holodeck/`, `ship/` or `crews/`.
 
 ## Current milestone
 
-M0: spine and clock. See `docs/architecture.md` § Milestones for the definition of done. Do not start M1 work in an M0 PR.
+M1: First light (v0.1). See `docs/architecture.md` § Milestones for the definition of done, `docs/decisions-m1.md` for the binding answers and `docs/kickoff-m1.md` for the branches. Do not start M2+ work in an M1 PR.
 
 ## Layers and the boundary
 
