@@ -50,9 +50,9 @@ Entries are held to the bar in `.claude/rules/decision-log.md`: a competent engi
 
 ### 5. M1 is a vertical slice that ships v0.1, not the horizontal contract-first plan
 
-**Why:** One episode played end to end through crew, bridge, captain and debrief finds the contract gaps that layer-by-layer work would hit only when the layers first met at the old M5. The definition of done is a video script that runs twice from a clean clone on two seeds.
+**Why:** One episode played end to end through crew, bridge, captain and debrief finds the contract gaps that layer-by-layer work would hit only when the layers first met at the former M5. The definition of done is a video script that runs twice from a clean clone on two seeds.
 
-**Instead of:** contract, systems and gateway as parallel tracks, the first agent at M2 and the bridge at M5. Each layer would be finished before any two had met.
+**Instead of:** contract, systems and gateway as parallel tracks, the first agent at the former M2 and the bridge at the former M5. Each layer would be finished before any two had met.
 
 **Cost:** v0.1 has no harness, no baseline crew and no scorecard, so it shows the system working and measures nothing. Shortcuts taken for the video have to be found and paid for in M2+.
 

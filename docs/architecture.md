@@ -247,7 +247,7 @@ Real systems of record time out, return stale data, accept a write and roll it b
 }
 ```
 
-An episode file is shorter: a header and a list of beats with `start` triggers (`{"at": 0}`, `{"after": "intruder-on-deck"}`, `{"when": {"beat": "contagion", "state": {"infected": ">= 5"}}}`) and `"linked": true|false` to say whether the Holodeck's truth connects them. The header holds what the world is (Configuration): tick length, the captain policy the episode was written against, and the one sentence the debrief reveals. Sketch (scenarios/episodes/unlisted.episode.json):
+An episode file is shorter: a header and a list of beats with `start` triggers (`{"at": 0}`, `{"after": "intruder-on-deck"}`, `{"when": {"beat": "contagion", "state": {"infected": ">= 5"}}}`) and `"linked": true|false` to say whether the Holodeck's truth connects them. The header holds what the world is (Configuration): `clock.tick_seconds`, the captain policy the episode was written against, and the one sentence the debrief reveals. Sketch (scenarios/episodes/unlisted.episode.json):
 
 ```json
 {
@@ -551,7 +551,7 @@ The UI exists to make the architecture legible at a glance. Built on Mycroft, th
 | Dilithium | Tokens and cost per incident and per hour, budget remaining | Audit table |
 | Replay | Scrubber and speed control over a closed incident | Ship's log |
 | Holodeck console | Pick an episode and seed, start, pause, inject an event | Holodeck API |
-| Captain's Log | Outcome banner, then the run's debrief: summary, impact, the interleaved timeline, the reveal | Ship API, `runs/<run_id>/postmortem.md` |
+| Captain's Log | Outcome banner, then the run's debrief (Outcomes) | Ship API, `runs/<run_id>/postmortem.md` |
 
 **Design rules.** One screen for the live demo (Comms plus Incidents plus Stations plus Captain's chair). Everything else is a drill-down. Nothing on the bridge reveals Holodeck hidden state; the human sees what the crew sees, plus the trace. The Holodeck console is where the truth lives and uses Mycroft's report theme (white ground, dark bands) so it reads as the script, never as the bridge. Components map directly: Comms is a Frame of CommLines, Stations is the AgentCard roster, Incidents is a Table plus Timeline, Captain's chair is a Frame with Buttons and a Dialog for consequential orders, Dilithium is a Gauge, alerts are the AlertBanner switching the theme. The Captain's Log is a Frame that appears when the run closes; it shows truth only after the run has closed, the one exception to the rule above.
 

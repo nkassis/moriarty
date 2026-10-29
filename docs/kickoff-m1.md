@@ -27,7 +27,7 @@ m1/holodeck-beats (NIM-16, with the episode file from NIM-15). Starts first, in 
 m1/ship-systems (NIM-17, then NIM-21). Starts first, in parallel with m1/holodeck-beats.
 - Contract models for the envelope, heartbeat, action event, report, incident closed, `RunConfig`, tool errors, and the messages on the bridge stream.
 - MCP servers for Sensors, Manifest, Bulkheads and Security with the tools in decisions-m1 6; `idempotency_key` on every action tool; structured errors with `retryable` and `retry_after`; `reversible` and `pii` tags; `detain` gated on `order_id`; reads through observable views only.
-- The Incident Desk (`open_incident`, `attach_event`, `request_order`, `file_report`, `owner`); the Captain's Chair with `hitl` and the episode policy as fallback; the clock pause while `awaiting_captain`.
+- The Incident Desk (`open_incident`, `attach_event`, `request_order`, `file_report`; `open_incident` sets `owner`); the Captain's Chair with `hitl` and the episode policy as fallback; the clock pause while `awaiting_captain`.
 - The gateway: FastAPI in front of LiteLLM, aliases `triage` and `summary`, the three headers, 402 on budget, the full-body cache key, `ollama_chat/`.
 - The Ship API: `POST /runs`, run status, one stream for the bridge, the approval endpoint. The comms exchange, the action stream, a per-crew RabbitMQ user created at run start.
 - Integration tests: tool idempotency, order gating, 402 on budget, a comms message delivered end to end on the stream.
