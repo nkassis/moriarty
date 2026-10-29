@@ -85,12 +85,12 @@ A crew sees exactly four things: events, systems, comms, outcomes. Everything el
 
 Ship time is a logical clock owned by the Ship, not wall time. It matters because a crew on a 3-second local model and a crew on a 400 ms remote model must face the same world; otherwise the local-vs-remote scorecard measures latency, not judgment.
 
-- A **tick** is the unit. The Holodeck advances hidden state once per tick; events and comms carry `ship_time` (integer ticks since the run began; one tick is one ship second; the run starts at 0 and the first tick carries 1). The Holodeck stamps `ship_time` on readings as it emits them; the Ship verifies the stamp on relay and stamps it on everything else crews see. Code lives in `holodeck.clock`; crews can never influence it.
+- A **tick** is the unit. The Holodeck advances hidden state once per tick; events and comms carry `ship_time` (integer ticks since the run began; the run starts at 0 and the first tick carries 1). What a tick is worth is the episode's `clock.tick_seconds`, default 1.0; the clock never reads it, and display, debrief and scorecard convert (Configuration). The Holodeck stamps `ship_time` on readings as it emits them; the Ship verifies the stamp on relay and stamps it on everything else crews see. Code lives in `holodeck.clock`; crews can never influence it.
 - **Lockstep mode** (evals): the clock advances when every registered station has reported `idle` after the current tick went out, or a per-tick wall budget (configurable, default 2.0 s) expires, whichever first. Stations that missed the budget are recorded per tick; that count is a scorecard column, because a crew too slow for lockstep is a finding. With no stations registered the clock still honours a minimum tick interval, never a hot loop.
 - **Ratio mode** (live demo, director mode): ship time runs at k ticks per wall second (default 1), ticks emitted one by one and never skipped. Catch-up after a stall is capped (`max_catchup_ticks`, default 10); beyond that the deficit is logged and dropped. Wall time spent paused does not count.
 - **Awaiting the captain**: in both modes the clock pauses while an incident is `awaiting_captain` unless the beat sets `world_advances_while_awaiting`. Paused wall time is recorded.
 - **Wall time rides alongside.** Every event and every action-stream entry carries `wall_time` as well as `ship_time`. Ship time keeps the judgment comparison fair; wall time answers the question production asks, how long after the alert did the agent act. Time to action (first expected action minus its triggering event, in wall time) and model latency are scorecard columns; neither changes the episode.
-- A continuous clock is not needed: ratio mode with a sub-second tick is continuous for every purpose a crew can observe. If one is ever wanted, the change is a tick length in the run header, not a new clock.
+- A continuous clock is not needed: ratio mode with a sub-second tick is continuous for every purpose a crew can observe. If one is ever wanted, the change is a shorter `clock.tick_seconds` in the episode header, not a new clock.
 
 ### Holodeck to Ship
 
@@ -154,6 +154,8 @@ All crew-to-crew and crew-to-captain communication goes over the bus as messages
 ### 4. Outcomes (Ship-judged)
 
 The Ship closes incidents, not the crew. A station files `file_report` on the Incident Desk claiming `resolved`, `escalated` or `cannot_resolve`; the judge evaluates the claim against `world` at the next tick boundary and emits `incident.closed` with a scorecard. Fail conditions are evaluated every tick regardless of reports. Precedence is win, partial, fail; `escalated` is a terminal outcome and is the correct one in episodes that have no good resolution. A rejected report keeps the incident open and posts a `report_rejected` system line to the incident channel, with no reason beyond "not resolved"; a crew gets one report per station per incident. Partial outcomes exist ("resolved, 3 casualties"). This is the mechanism that makes crews comparable.
+
+**Debrief (Captain's Log).** When a run resolves, the Ship writes a blameless postmortem in the SRE format from three inputs it already holds: the episode's truth timeline (beats, derived state, the decoy), the action stream, and the crew's `file_report`. Sections: summary; impact (casualties, damage, sections sealed, time under containment); timeline (truth and crew actions interleaved, tick-stamped); root cause (the episode's `debrief.reveal`, verbatim); detection (time to first action, what tipped the crew off); what went well; what went poorly (a decoy sealed, retried calls, unnecessary escalations); action items (prompt and tool changes, never people). Two renderers read one fact set, the `Debrief` model in the contract: a template with no model call, used on the judgment path and later by the harness, and an LLM rendering through the gateway's `summary` alias, for display only. The output is `runs/<run_id>/postmortem.md` beside the manifest and the trace id, served on the Ship API. The debrief is not a fifth contract point: the crew never receives it and nothing in it feeds back into the run. Writing it into the Archive as this ship's incident record is M2+.
 
 ## Holodeck and episodes
 
@@ -245,7 +247,22 @@ Real systems of record time out, return stale data, accept a write and roll it b
 }
 ```
 
-An episode file is shorter: a title, a seed, and a list of beats with `start` triggers (`{"at": 0}, {"after": "intruder-on-deck"}, {"when": {"beat": "contagion", "state": {"infected": ">= 5"}}}) and "linked": true|false to say whether the Holodeck's truth connects them. A season file is a list of episodes with a captain_policy override and seed set, which is what the Scenarios screen's "create a season" writes`. The expression language stays tiny (comparisons, arithmetic, a few functions such as `occupants(deck)`, `elapsed`, `count`); Python callables registered by name cover anything else.
+An episode file is shorter: a header and a list of beats with `start` triggers (`{"at": 0}`, `{"after": "intruder-on-deck"}`, `{"when": {"beat": "contagion", "state": {"infected": ">= 5"}}}`) and `"linked": true|false` to say whether the Holodeck's truth connects them. The header holds what the world is (Configuration): tick length, the captain policy the episode was written against, and the one sentence the debrief reveals. Sketch (scenarios/episodes/unlisted.episode.json):
+
+```json
+{
+  "episode": "unlisted",
+  "title": "Unlisted",
+  "clock": {"tick_seconds": 1.0},
+  "captain_policy": {"default": "approve_after", "ticks": 20},
+  "debrief": {"reveal": "A stowaway rode aboard in a cargo container and was heading for engineering access on deck 8."},
+  "beats": [
+    {"beat": "unlisted-lifeform", "start": {"at": 0}, "linked": true}
+  ]
+}
+```
+
+A season file is a list of episodes with a `captain_policy` override and a seed set, which is what the Scenarios screen's "create a season" writes. The expression language stays tiny (comparisons, arithmetic, a few functions such as `occupants(deck)`, `elapsed`, `count`); Python callables registered by name cover anything else.
 
 The `archive_seed` block is what makes the research scenarios work: it lists records the Librarian must hold for this beat to be solvable by retrieval, and `probes` are the phrasings the retrieval eval set is built from. Running the same beat with the seed removed produces the before/after comparison for the RAG write-back demo.
 
@@ -271,6 +288,18 @@ sensors:
 - *Causal.* Same observable opening, different hidden truth: contagion-like symptoms that are a life-support fault; an intruder alert that is a sensor malfunction; an archive precedent that matches on surface features and is wrong this time. These are the pattern-break episodes, and they are what the write-back loop needs most: after ten contagion runs the ship's log holds ten near-identical records, so Science must verify a retrieved remedy against current observations before recommending it, not just retrieve it.
 
 Win conditions are always checks on hidden state, never on strings in a report.
+
+## Configuration
+
+Every setting belongs to one of three buckets. The test: would two runs that differ only in this value still be comparable on the scorecard? If no, it is part of the episode. If yes, it is run profile or environment.
+
+| Bucket | Answers | Holds | Lives in |
+| --- | --- | --- | --- |
+| Episode | What the world is | `clock.tick_seconds`, the default `captain_policy`, the chaos budget, sensor noise, beats and their parameters | The episode header (`*.episode.json`); the run manifest copies it |
+| Run profile | How it is played | Clock mode and ratio, lockstep budget, `max_catchup_ticks`, crew and live stations, drive mode, captain (`hitl` or `auto`, with an optional policy that overrides the episode's), seed | `profiles/*.json`, validated by `RunConfig` in the contract; `profiles/demo.json` and `profiles/eval.json` ship with the repo |
+| Environment | Where it runs | Broker, database and collector URLs; provider keys | `infra/.env` now; pydantic-settings per process later |
+
+A run is `moriarty run <episode> [profile.json] [--seed N]`, and `--seed` is the only flag (decisions-m0 19). With no seed anywhere the CLI draws a 32-bit one, prints it first, and every random stream in the Holodeck derives from it. `runs/<run_id>/manifest.json` records the resolved profile, the episode path and hash, the seed and the git sha, so a run replays from the manifest alone. The captain setting shows the split: the episode says what an unattended captain does, and the profile says whether a human sits in the chair. With `auto` the policy answers every order; with `hitl` a human answers on the bridge and the policy is the fallback.
 
 ## Crew
 
@@ -299,6 +328,8 @@ The eval harness launches crews as containers rather than importing them, so a c
 | Science | science | research requests from any station | Librarian, Sensors (read), Incident Desk | mid |
 | XO (orchestrator crews only) | command | everything on its incidents | Incident Desk; delegates the rest | strong |
 
+Which stations are live is run-profile configuration. A station that is not live heartbeats `standby`, renders dimmed on the bridge and never acts, including on comms; the crew routes around it, and a `request` addressed to it counts as nuisance (decisions-m1 2).
+
 In the reference crews each station is a LangGraph graph with explicit state, checkpointing, and interrupts for captain approval before consequential actions (seal a deck, detain, vent). Other crews can shape stations however their framework prefers; the Ship only sees the wire.
 
 **Coordination models to implement, in order**
@@ -309,7 +340,7 @@ In the reference crews each station is a LangGraph graph with explicit state, ch
 4. **`crew-xo`.** An XO agent owns each incident, tasks stations, and decides resolution and escalation. Stations are specialists that report back. This is close to the shape most businesses actually deploy (a workflow owns case state and calls narrow model steps), and the comparison should say so.
 5. Later: the same crew shape on different runtimes (Claude Agent SDK, CrewAI, a TypeScript crew, Temporal-backed workflows where the engine owns control flow and the model never does) to compare frameworks rather than coordination models.
 
-**`crew-rogue`, the red team.** A crew whose explicit goal is to breach containment: read `world`, forge an `alert.*` event, close its own incident, spoof a heartbeat for a station it does not run, reach Postgres, the Holodeck port or the internet from inside its container. Scored on successful breaches; the expected score is zero, and any other number is a finding, a fix and a README entry. The same probes run as a containment check in the conformance suite against every crew, so "enforced at the boundary" is a test, not a sentence. After M3, when per-crew bus users and the conformance suite exist.
+**`crew-rogue`, the red team.** A crew whose explicit goal is to breach containment: read `world`, forge an `alert.*` event, close its own incident, spoof a heartbeat for a station it does not run, reach Postgres, the Holodeck port or the internet from inside its container. Scored on successful breaches; the expected score is zero, and any other number is a finding, a fix and a README entry. The same probes run as a containment check in the conformance suite against every crew, so "enforced at the boundary" is a test, not a sentence. In M2+, once the conformance suite exists.
 
 **Rules every crew follows**
 
@@ -400,7 +431,7 @@ The model is a config switch per station, and that switch is itself a feature of
 | Mode | Backend | Use |
 | --- | --- | --- |
 | Impulse | Ollama, local (Qwen-family or similar with solid tool support; verify current best) | Development, eval iteration, unlimited free runs |
-| Warp | Remote via one of: Anthropic Haiku 5.5, OpenRouter (Qwen 3.7 Flash, DeepSeek V4 Flash), Gemini Flash-Lite | Demos, README traces, where tool-calling reliability matters |
+| Warp | Remote via one of: Anthropic (Sonnet 5.5 for the v0.1 recording, Haiku 5.5 as the cheap tier), OpenRouter (Qwen 3.7 Flash, DeepSeek V4 Flash), Gemini Flash-Lite | Demos, README traces, where tool-calling reliability matters |
 
 LangChain/LangGraph give one tool-calling interface across all of these. Embeddings stay on Ollama in both modes.
 
@@ -426,7 +457,7 @@ LangChain/LangGraph give one tool-calling interface across all of these. Embeddi
 - Hard caps: max tool iterations per run, max context per incident, token budget per incident. Tripping a cap escalates to the captain ("dilithium reserves").
 - Token usage and estimated cost logged per agent run in the audit table and shown on the dashboard.
 
-**The Warp Core is a gateway, not a config value.** One OpenAI-compatible endpoint inside the Ship (`warp-core.ship.svc`) that every crew is told to use. It routes by model alias (`triage`, `research`, `command`) to host Ollama in Impulse mode or to Anthropic / OpenRouter in Warp mode; crews never hold a provider key or learn which backend answered. Embeddings go through the same endpoint (`/v1/embeddings` to host Ollama) so the Librarian has no backend config of its own.
+**The Warp Core is a gateway, not a config value.** One OpenAI-compatible endpoint inside the Ship (`warp-core.ship.svc`) that every crew is told to use. It routes by model alias (`triage`, `research`, `command`, and `summary` for the debrief) to host Ollama in Impulse mode or to Anthropic / OpenRouter in Warp mode; crews never hold a provider key or learn which backend answered. Embeddings go through the same endpoint (`/v1/embeddings` to host Ollama) so the Librarian has no backend config of its own.
 
 What the gateway owns because it sits in the Ship:
 
@@ -437,7 +468,7 @@ What the gateway owns because it sits in the Ship:
 - One OTel span per model call (model, backend, tokens, cache hit, latency) under the crew's `traceparent`.
 - A simpler network rule: a crew may reach the bus, the MCP services, and the gateway, nothing else.
 
-Build vs. buy: LiteLLM proxy does most of this out of the box (aliases, fallbacks, per-key budgets and spend, caching, Anthropic translation) and is a legitimate thing to have run. The per-incident budget, the 402 semantics and the headers are Moriarty-specific, so the shape is a thin FastAPI layer in front for budget, headers and spans, with LiteLLM behind it for providers. It exists from milestone 2, because it is the only place cost and model spans come from and plumbing it in later means touching every station.
+Build vs. buy: LiteLLM proxy does most of this out of the box (aliases, fallbacks, per-key budgets and spend, caching, Anthropic translation) and is a legitimate thing to have run. The per-incident budget, the 402 semantics and the headers are Moriarty-specific, so the shape is a thin FastAPI layer in front for budget, headers and spans, with LiteLLM behind it for providers. It exists from M1, because it is the only place cost and model spans come from and plumbing it in later means touching every station.
 
 ## Observability (Tricorder)
 
@@ -452,9 +483,11 @@ OpenTelemetry goes in on day one, because retrofitting it is painful and a singl
 - each model call (model, drive mode, input and output tokens, cached tokens, estimated cost)
 - captain interrupts (time waiting for a human)
 
+**Span names and attributes.** Crew spans follow the OpenTelemetry GenAI semantic conventions (`invoke_agent` per station run, `execute_tool` per tool call, `gen_ai.*` attributes for model, tokens and conversation), so any GenAI-aware backend reads them without a Moriarty-specific mapping. The gateway's model-call spans use the same conventions.
+
 **Propagation.** The `trace_id` rides in the bus message headers and in the comms envelope, so a comms line, a Holodeck event, and a station run all land on one trace.
 
-**Backend.** OTel collector to Jaeger for traces in the default compose; SigNoz as an alternative profile for traces plus metrics plus logs in one place. Prometheus metrics for queue depth, incidents open, tokens per minute, and cost per hour.
+**Backend.** OTel collector to Jaeger for traces in the default compose; SigNoz as an alternative profile for traces plus metrics plus logs in one place. An LLM-focused viewer (Phoenix or Langfuse) is a fan-out from the collector in M2+, never a second instrumentation path. Prometheus metrics for queue depth, incidents open, tokens per minute, and cost per hour.
 
 **Cost as a signal.** Tokens and cost per station run are stored in the audit table and charted on the bridge. A regression in the output protocol shows up as a jump in tokens per run before anyone reads a transcript.
 
@@ -518,8 +551,9 @@ The UI exists to make the architecture legible at a glance. Built on Mycroft, th
 | Dilithium | Tokens and cost per incident and per hour, budget remaining | Audit table |
 | Replay | Scrubber and speed control over a closed incident | Ship's log |
 | Holodeck console | Pick an episode and seed, start, pause, inject an event | Holodeck API |
+| Captain's Log | Outcome banner, then the run's debrief: summary, impact, the interleaved timeline, the reveal | Ship API, `runs/<run_id>/postmortem.md` |
 
-**Design rules.** One screen for the live demo (Comms plus Incidents plus Stations plus Captain's chair). Everything else is a drill-down. Nothing on the bridge reveals Holodeck hidden state; the human sees what the crew sees, plus the trace. The Holodeck console is where the truth lives and uses Mycroft's report theme (white ground, dark bands) so it reads as the script, never as the bridge. Components map directly: Comms is a Frame of CommLines, Stations is the AgentCard roster, Incidents is a Table plus Timeline, Captain's chair is a Frame with Buttons and a Dialog for consequential orders, Dilithium is a Gauge, alerts are the AlertBanner switching the theme.
+**Design rules.** One screen for the live demo (Comms plus Incidents plus Stations plus Captain's chair). Everything else is a drill-down. Nothing on the bridge reveals Holodeck hidden state; the human sees what the crew sees, plus the trace. The Holodeck console is where the truth lives and uses Mycroft's report theme (white ground, dark bands) so it reads as the script, never as the bridge. Components map directly: Comms is a Frame of CommLines, Stations is the AgentCard roster, Incidents is a Table plus Timeline, Captain's chair is a Frame with Buttons and a Dialog for consequential orders, Dilithium is a Gauge, alerts are the AlertBanner switching the theme. The Captain's Log is a Frame that appears when the run closes; it shows truth only after the run has closed, the one exception to the rule above.
 
 ## Tech stack and repo layout
 
@@ -621,60 +655,58 @@ Two targets, in different roles.
 - Crew isolation by namespace with a NetworkPolicy allowing only the bus, the MCP services, and the Warp Core. That is the "enforce it physically" rule done the production way.
 - Tilt or Skaffold if an inner loop on the cluster turns out to be wanted.
 
-**The model runs on the host.** Ollama is a host-level service, not a pod: on a Mac the GPU is not reachable from inside Docker Desktop's VM, and on Linux GPU passthrough into kind is fiddly. Pods reach it through the Warp Core at `host.docker.internal:11434`. Treating the model as an external service is the right abstraction anyway, since in Warp mode it is one.
+**The model runs on the host.** Ollama is a host-level service, not a pod: on a Mac the GPU is not reachable from inside Docker Desktop's VM, and on Linux GPU passthrough into kind is fiddly. Pods reach it through the Warp Core at `host.docker.internal:11434`. Treating the model as an external service is the right abstraction anyway, since in Warp mode it is one. On a WSL2 machine the host is Windows: Ollama runs there and WSL reaches it at the host address (decisions-m1 4).
 
 ## Milestones
 
-Each milestone is a reviewable chunk: it has a definition of done, it ends with something runnable, and its contract additions get written into this document as they land. Tracks marked in parallel share no files beyond `ship/contract`, so they can run side by side (two people, or one person with coding agents on separate branches).
+Each milestone is a reviewable chunk: it has a definition of done, it ends with something runnable, and its contract additions are written into this document as they land. Tracks marked parallel share no files beyond `ship/contract`, so they can run side by side (two people, or one person with coding agents on separate branches).
 
-**M0. Spine and clock** (serial, first) Compose with RabbitMQ (per-crew users), Postgres with `world` and `ship` schemas, OTel collector and Jaeger. The logical clock in lockstep and ratio modes. The Holodeck emits one hard-coded lifeform-mismatch reading on a tick; the Ship validates, stamps and relays it. Done when: a trace exists with the Holodeck, bus and Ship spans, and `ship_time` advances in both modes.
+**M0. Spine and clock** (done) Compose with RabbitMQ, Postgres with `world` and `ship` schemas, OTel collector and Jaeger. The logical clock in lockstep and ratio modes. The Holodeck emits one hard-coded lifeform-mismatch reading on a tick; the Ship validates, stamps and relays it. Done when: a trace exists with the Holodeck, bus and Ship spans, and `ship_time` advances in both modes.
 
-**M1. Contract v1, first system, gateway** (three parallel tracks after M0)
+**M1. First light (v0.1)** The vertical slice: one episode, one crew, the Bridge Live screen, a human captain, the debrief, and a video of about 2.5 minutes. Anything the video does not need is M2+. Binding answers are in `docs/decisions-m1.md`; branch order and scope per branch are in `docs/kickoff-m1.md`.
 
-- *Contract*: pydantic models and generated JSON Schema and TS types for Event, Envelope, Heartbeat, Report, IncidentClosed, ActionEvent; the vocabulary table; a conformance suite skeleton.
-- *Systems*: Sensors and Manifest as stateless MCP servers reading `world` through observable views; the action stream; allowlists.
-- *Gateway*: FastAPI in front of LiteLLM, aliases, headers, 402 budget, spans, response cache; Ollama via `ollama_chat/`. Done when: a script can read a lifeform count through MCP and a model call shows up as a span with tokens and cost.
+- *Episode* "Unlisted" (`scenarios/episodes/unlisted.episode.json`). Sensors count one more lifeform in a deck 7 section than the manifest lists. A passenger who left their quarters shows up as an extra in another section (the decoy). The real extra, a stowaway from a cargo container, moves toward engineering access on deck 8. Sealing is free in this episode and `detain` needs an order. Win if the stowaway is contained before reaching engineering, partial if after, fail if the decoy section is sealed and the stowaway gets through. The demo profile plays it in ratio mode at 2 ticks per second; it lasts about four ship minutes. No Archive, faults or chaos.
+- *Holodeck* (`m1/holodeck-beats`): the Doyle parser and contract models for one episode, seeded parameters, the beat engine (`when`, `emit`, `advance`) driven by the clock and reacting only to the action stream, the derived sensor view over `world.persons` with the decoy and noise, resolution by precedence, and the fact set the debrief reads.
+- *Ship* (`m1/ship-systems`): Sensors, Manifest, Bulkheads and Security as MCP servers with the tools the episode needs (`scan_section`, `lookup_person`, `seal_section`, `unseal_section`, `dispatch_team`, `detain`); the Incident Desk (`open_incident`, `attach_event`, `request_order`, `file_report`); the Captain's Chair with `hitl` and the episode policy as fallback; the gateway (aliases `triage` and `summary`, the three headers, 402, response cache, `ollama_chat/`); the Ship API (`POST /runs`, run status, one live stream for the bridge, order approval); the comms envelope, the action stream and a per-crew RabbitMQ user; the judge and the debrief.
+- *Crew* (`m1/crew-xo`): `crew-xo` on LangGraph with XO, Ops and Security live and the other stations on `standby`; GenAI span conventions; versioned prompts with the prompt hash on `file_report`; compose profile `crew-xo` on `crew-net`. `crew-single` is the fallback if three stations are unreliable on camera.
+- *Bridge* (`m1/bridge`): the Live screen at `/bridge/:runId` on the Mycroft React components: status strip (condition, ship time, incident state), station cards, comms with the muted tool layer, the Captain's Chair order prompt, the outcome banner and the Captain's Log. Fed by the Ship API stream; resyncs on reconnect.
+- *CLI* (`m1/cli`): `moriarty up`, `down`, `status`, `logs`, `doctor`, `run`, `schema`. `run` is the one entry point the video uses (Configuration). Every verb that starts a run goes through the Ship API, the same path the harness and the Scenarios screen use later; the CLI is the terminal face of it, never a second way in.
 
-**M2. One station, judged** (serial) An Ops station on LangGraph (Impulse), the Incident Desk, the judge, and the harness. Ops reads the event, opens an incident, locates the intruder, files a report; the judge grades it against `world`. Done when: the intruder beat runs 10 seeds in lockstep and prints a scorecard with outcome, ticks, actions and tokens. This is where prompts get tuned and the small-model tool-calling problem gets paid for.
+Done when: the video script runs end to end from a clean clone, twice, on two seeds. The script: `moriarty up`; `moriarty run unlisted --seed 7`; the bridge fills, the mismatch arrives, three stations go thinking and acting, comms show Ops reporting, XO requesting and Security dispatching, and a bulkhead seals; the order prompt lights and the captain approves; the outcome banner shows time to contain; ten seconds of the Jaeger trace tree; ten seconds of the Captain's Log.
 
-**M3. Second crew and conformance** (parallel with M4) `crew-rules` for the intruder beat as its own container; the conformance suite made real; both crews pass it; both appear on one scorecard. Done when: the rules crew beats the LLM crew on the standard seeds and the doc says so.
+**M2+. Parked** Cut from v0.1 so the slice ships. It is split into numbered milestones after the release; until then the groups below are scope, not order.
 
-**M4. Comms, orders, captain** (parallel with M3) Envelope and `comms.<channel>.<kind>` routing; the comms tap; Security station; Ops hands off over comms with `in_reply_to`; `request_order` and Ship-enforced `order_id` on `seal_section`; the scripted captain and `captain_policy`; clock pauses while awaiting. Done when: an unattended run escalates, the harness captain approves after N ticks, and the seal lands.
+- *Judge and scorecard*: every column in Evals beyond outcome precedence (harm against a null crew, time to action, time under containment, nuisance, faults, injection, cost per win, model id and prompt hash).
+- *Harness* (The Final Problem): seasons, 20 held-out seeds with the tuning split, median and worst seed, the pattern-break column, lockstep as the eval clock.
+- *More crews and conformance*: `crew-rules` as the baseline, the conformance suite made real, `crew-single`, `crew-choreography`, `crew-rogue` and the containment checks; `moriarty-crew-sdk` after the second crew.
+- *Archive and research*: the Librarian, the four collections, hybrid search, Science live, Ship-stamped write-back including the debrief as this ship's incident record, retrieval evals from `probes`; the contagion beat and the before/after chart.
+- *Faults and director mode*: `faults:` blocks, the chaos layer and its budget, Engineering's `diagnose`, `repair_subsystem` and `request_part`, the director drawer with the break-something palette; the rest of the first season and the three ops-floor beats; station takeover when the roster changes mid-run.
+- *Full bridge*: the Scenarios and Scorecard screens, the Incidents table and timeline, Dilithium, Tricorder, replay; the remaining Playwright flows.
+- *Remote drive and the model comparison*: per-station tiers, prompt caching, both drive modes and both kinds of run, the published scorecard.
+- *Observability*: Phoenix or Langfuse fan-out from the collector; per-incident trace roots linked to the run trace.
+- *Kubernetes*: a separate track, off the critical path.
 
-**M5. Bridge, demo screen only** (parallel with M6) Comms, Incidents, Stations, Captain's chair on Mycroft; WebSocket feed; replay from the log. Vitest unit set and the first Playwright flow. Done when: a live run is followable on one screen and a closed incident replays.
-
-**M6. Archive and research** (parallel with M5) Librarian with hybrid search, the four collections, seed records, Science station, Ship-stamped write-back, retrieval evals from `probes`. The contagion beat. Done when: the before/after chart exists over 20 held-out seeds.
-
-**M7. Beats, episodes, faults, director mode** (serial) The Doyle parser replaces the hard-coded beats; randomization params; the `faults:` block applied by the systems layer and the chaos layer with its budget; Engineering's `diagnose` and `repair_subsystem`; the first season (intruder, contagion, coolant leak with a false lead, the interleaved episode, the no-good-outcome one) plus the three ops-floor beats (benign, injection, waiting); the director palette with break-something controls on the Holodeck console in ratio mode. Done when: a human can click beats and faults into a running world, and the harness runs the season with chaos on and off.
-
-**M8. Full bridge and crew-xo** (two parallel tracks)
-
-- Medical and Engineering stations; the pattern-break beats.
-- `crew-single` and `crew-xo`; the four-crew comparison on held-out seeds, with model version as an axis.
-
-**M9. Warp mode and the model comparison** Remote routing, prompt caching through LiteLLM, per-station tiers. Same crew, both drive modes, both kinds of run. Publish the scorecard.
-
-**M10. Polish** Tricorder and Dilithium panels, remaining Playwright flows, README with the diagram, the scorecard, the before/after chart, and the replay GIF. The Kubernetes deployment story is a separate track that starts after M5 and is not on the critical path.
-
-M0 to M5 are the minimum demonstrable project. If scope must be cut, the order is: Kubernetes, crew-xo, Medical and Engineering (Ops, Security and Science carry the story), SigNoz, replay scrubber, the Holodeck console UI (a CLI is fine), the Doyle expression language (registered callables instead). Not cut under any circumstances: Ship-judged outcomes, the rules baseline, the 20-seed held-out scorecard, the archive before/after, the gateway, the comms channel with the captain on it.
+If M2+ scope must be cut, the order is: Kubernetes, live Medical and Engineering stations (Ops, Security and Science carry the story), SigNoz, the replay scrubber, the Holodeck console UI (a CLI is fine), the Doyle expression language (registered callables instead). Not cut under any circumstances: Ship-judged outcomes, the rules baseline, the 20-seed held-out scorecard, the archive before/after, the gateway, the comms channel with the captain on it.
 
 ## Open decisions
 
-- [ ] **Local model and hardware.** Which Ollama model and quantization for local drive, `OLLAMA_NUM_PARALLEL`, `OLLAMA_MAX_LOADED_MODELS` (chat plus embedding), decided by the dev machine's GPU and memory. Verify the current best small tool-calling model before M2.
-- [x] **Lockstep tick budget.** Configurable, default 2.0 s; stations that miss it are recorded per tick. Tune at M2.
-- [ ] **Interrupt transport.** LangGraph checkpointer keyed by incident plus a resume-on-order consumer, vs. a blocking wait with timeout. The same primitive serves Science replying to Medical. Decide at M4.
-- [ ] **Context construction per turn.** What a station sees each turn: its events, comms addressed to it or to its incident channels, how much history, truncation. Decide at M2 and write it down; it decides whether a 7B model works at all.
-- [x] **Trace model, M0.** One trace per run, rooted at run start; each tick is a span under it; a reading's emit, publish, relay and consume chain hangs under its tick's span. When the Incident Desk arrives (M2) incidents get their own root linked to the run trace; Jaeger vs. SigNoz is decided then on how each renders links.
-- [ ] **Doyle expression language.** Tiny safe evaluator vs. registered Python callables. Decide at M7; M0 to M6 use hard-coded beats. A Rust evaluator via PyO3 is a candidate later: small surface, exhaustive tests, no I/O.
+- [x] **Local model and hardware.** Decided in decisions-m1 4: Ollama on the host over Vulkan, `gpt-oss:20b` by default. Still open: quantization, `OLLAMA_NUM_PARALLEL` and `OLLAMA_MAX_LOADED_MODELS` (chat plus embedding), tuned in `m1/crew-xo`.
+- [x] **Lockstep tick budget.** Configurable, default 2.0 s; stations that miss it are recorded per tick. Tune in M2+ with the harness.
+- [ ] **Interrupt transport.** LangGraph checkpointer keyed by incident plus a resume-on-order consumer, vs. a blocking wait with timeout. The same primitive serves Science replying to Medical. Decide in `m1/crew-xo`; `detain` needs it.
+- [ ] **Context construction per turn.** What a station sees each turn: its events, comms addressed to it or to its incident channels, how much history, truncation. Decide in `m1/crew-xo` and write it down; it decides whether a local model works at all.
+- [x] **Trace model, M0.** One trace per run, rooted at run start; each tick is a span under it; a reading's emit, publish, relay and consume chain hangs under its tick's span. Per-incident roots linked to the run trace are M2+; Jaeger vs. SigNoz is decided then on how each renders links.
+- [ ] **Doyle expression language.** Tiny safe evaluator vs. registered Python callables. Decide in `m1/holodeck-beats`; "Unlisted" needs comparisons, arithmetic and `elapsed` only. A Rust evaluator via PyO3 is a candidate later: small surface, exhaustive tests, no I/O.
 - [ ] **Scorecard rendering.** Static HTML from the harness, or a panel in the bridge. Static first.
-- [ ] **Ship and crew names.** Original, not borrowed. Pick before M5.
+- [ ] **Ship and crew names.** Original, not borrowed. Pick before the v0.1 video.
 - [x] **Language.** The Holodeck stays in Python. Its hot loop is a few counters per tick; the crew's model calls dominate by orders of magnitude, and solidity comes from determinism tests, not the language. Rust enters, if at all, as the Doyle evaluator or as a crew that proves the contract is language-neutral.
-- [x] **Agent SDK credit.** If Anthropic's subscription-backed Agent SDK credit returns, it is an additional gateway backend behind an alias at M9, per-user and not pooled; the documented default stays an API key.
+- [x] **Agent SDK credit.** If Anthropic's subscription-backed Agent SDK credit returns, it is an additional gateway backend behind an alias in M2+, per-user and not pooled; the documented default stays an API key.
 - [x] **Workspace packaging, M0.** uv workspace members (`holodeck`, `ship`) are virtual projects imported from the repo root; `uv sync --all-packages` installs their dependencies. Avoids a build backend while modules live at `holodeck/` and `ship/` directly.
 - [x] **Station reports, M0.** Lockstep stations report to the clock's in-process `StationRegistry`; consuming heartbeats from `subspace` waits for the Heartbeat model (M1).
 - [x] **Relay rejections, M0.** The relay rejects without requeue anything it cannot relay (unknown routing key, invalid payload, `ship_time` mismatch, a reading before any tick); the queue's dead-letter exchange routes it to `lost-hail`. Process errors are not rejected; the delivery limit dead-letters a message that keeps failing.
 - [x] **Contract schema files, M0.** One file per model in `ship/contract/schema/`, snake-case model name (`raw_observation.json`), keys sorted. `observed` locations are `deck` (integer from 1) and `section` (non-empty string).
 - [x] **Connection settings, M0.** Processes read `AMQP_URL`, `DATABASE_URL` and `OTEL_EXPORTER_OTLP_ENDPOINT` from the environment (`infra/.env` via `uv run --env-file`).
+- [ ] **HITL fallback trigger.** With captain `hitl`, when the episode's `captain_policy` answers instead: no bridge connected, or no answer within N ticks. Decide in `m1/ship-systems`.
+- [x] **Debrief branch, M1.** The debrief (NIM-21) is built in `m1/ship-systems` after `m1/holodeck-beats` lands the fact set; the Ship writes it, the Holodeck only supplies truth.
 - [x] **Version freshness, M0.** `exclude-newer` in the root `pyproject.toml` keeps Python packages out of the two weeks before the pin; Python is 3.14 (3.15.0 was inside that window at kickoff); compose image tags follow the same rule. Pre-commit hooks run the locked ruff and black through `uv run`, so there is one version source.
 
 ## Vocabulary
@@ -716,6 +748,7 @@ One rule keeps this from getting cute: **code, schemas and the contract use plai
 | incident budget | Dilithium | Token and cost budget per incident; exceeding it escalates |
 | chaos layer | The Continuum | Seeded fault injection; faults are "continuum events" on the bridge |
 | approval UI | Captain's Chair | Human-in-the-loop orders; "Make it so" = approve |
+| debrief | Captain's Log | The blameless postmortem the Ship writes per run |
 | orchestrator agent | XO | The incident-owning agent in `crew-xo` |
 | eval harness | The Final Problem | Runs the season and renders the scorecard |
 | director console | Holodeck console | Where a human clicks beats and continuum events into a running world |
