@@ -2,7 +2,7 @@
 
 - `architecture.md`: the architecture document and the source of truth until `spec.md` exists. Exported from the live doc; edit here from now on.
 - `user-stories.md`: one story per screen element or contract behaviour, with acceptance and milestone.
-- `vocabulary.md`: canonical names and enums; `ship/contract` generates from it.
+- `vocabulary.md`: canonical names and enums; a test checks the `ship/contract` enums against it.
 - `decisions-m0.md`: binding answers to the M0 design questions.
 - `licenses.md`: the project license, third-party dependency licenses and the CI license check.
 - `kickoff-m0.md`: the prompt for the first Claude Code session.

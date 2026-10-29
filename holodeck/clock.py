@@ -1,4 +1,4 @@
-"""The logical clock: lockstep and ratio modes (docs/decisions-m0.md, decisions 3 and 5 to 9)."""
+"""The logical clock: lockstep and ratio modes (docs/decisions-m0.md, decisions 3 and 5 to 8)."""
 
 import asyncio
 import logging

@@ -679,7 +679,7 @@ M0 to M5 are the minimum demonstrable project. If scope must be cut, the order i
 
 ## Vocabulary
 
-One rule keeps this from getting cute: **code, schemas and the contract use plain names; themed names are display labels and README flavor only.** The gateway is `ship/gateway` in the repo and "Warp Core" on the bridge. A reader who never watched the show can follow every file, and a reader who did gets the wink. `docs/vocabulary.md` is the canonical table and `ship/contract` generates its enums from it.
+One rule keeps this from getting cute: **code, schemas and the contract use plain names; themed names are display labels and README flavor only.** The gateway is `ship/gateway` in the repo and "Warp Core" on the bridge. A reader who never watched the show can follow every file, and a reader who did gets the wink. `docs/vocabulary.md` is the canonical table; the enums in `ship/contract` are hand-written and a test fails on any difference from it.
 
 **Contract enums (plain, fixed)**
 

@@ -21,7 +21,7 @@ M0: spine and clock. See `docs/architecture.md` § Milestones for the definition
 
 ## Vocabulary
 
-Code, schemas, file names and the contract use plain names: `gateway`, `chaos`, `budget`, `archive`, `simulation`. Themed names (Warp Core, Continuum, Dilithium, Holodeck, Mycroft) are display labels for the bridge and README flavor. `docs/vocabulary.md` is the canonical table; `ship/contract` generates its enums from it. No franchise ship names, character names, registry numbers, insignia or stardates anywhere. Ship time is integer ticks, rendered `HH:MM:SS`.
+Code, schemas, file names and the contract use plain names: `gateway`, `chaos`, `budget`, `archive`, `simulation`. Themed names (Warp Core, Continuum, Dilithium, Holodeck, Mycroft) are display labels for the bridge and README flavor. `docs/vocabulary.md` is the canonical table; the enums in `ship/contract` are hand-written and a test fails on any difference from it. No franchise ship names, character names, registry numbers, insignia or stardates anywhere. Ship time is integer ticks, rendered `HH:MM:SS`.
 
 Contract enums are fixed; do not invent new values without a doc change:
 - Agent state: `idle`, `thinking`, `acting`, `standby`

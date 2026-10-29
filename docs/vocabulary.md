@@ -1,6 +1,6 @@
 # Vocabulary
 
-Code, schemas and the contract use plain names. Themed names are display labels on the bridge and README flavor. `ship/contract` generates its enums from the tables below.
+Code, schemas and the contract use plain names. Themed names are display labels on the bridge and README flavor. The enums in `ship/contract` are hand-written; a test fails on any difference from the tables below.
 
 ## Contract enums
 
