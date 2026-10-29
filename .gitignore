@@ -10,3 +10,5 @@ dist/
 !.env.example
 *.local
 infra/volumes/
+*.pem
+*.key
