@@ -10,7 +10,7 @@ jobs:
     name: python-check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v6
       - name: Install Python and dependencies
         run: uv sync --all-packages --locked
@@ -46,7 +46,7 @@ jobs:
       run:
         working-directory: bridge
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: bridge/package.json
@@ -80,7 +80,7 @@ jobs:
       run:
         working-directory: bridge
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: bridge/package.json
@@ -112,7 +112,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Scan commits in this PR or push
