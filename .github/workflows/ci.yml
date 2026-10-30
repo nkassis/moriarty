@@ -47,7 +47,7 @@ jobs:
         working-directory: bridge
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           package_json_file: bridge/package.json
       - uses: actions/setup-node@v7
@@ -81,7 +81,7 @@ jobs:
         working-directory: bridge
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           package_json_file: bridge/package.json
       - uses: actions/setup-node@v7
