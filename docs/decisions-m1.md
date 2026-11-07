@@ -67,3 +67,35 @@ Entries are held to the bar in `.claude/rules/decision-log.md`: a competent engi
 **Cost:** longer names in every tool list a model reads, and NIM-17 has to be read through this mapping.
 
 **Status:** Accepted.
+
+## Ship systems
+
+### 7. The Ship starts and pauses runs over a Ship-only control exchange
+
+**Why:** `POST /runs` and the captain pause cross the Ship-Holodeck boundary. A long-running Holodeck service consumes `run.start`, `run.pause` and `run.resume` from an internal exchange; the pause message sets the clock's existing pause predicate, so neither layer reads the other's schema.
+
+**Instead of:** the API spawning `holodeck.run` and the clock polling `ship` incidents. An exact pause and no new service, but the two would share an image and the Holodeck would read `ship`.
+
+**Cost:** one more always-on service and internal message contract, and a tick can go out between the order request and the pause.
+
+**Status:** Accepted.
+
+### 8. The scripted captain counts world ticks; a human in `hitl` has no timeout
+
+**Why:** The clock pauses while `awaiting_captain`, so a wall-clock-free `approve_after N` never elapses. The profile's `captain` (`hitl` | `auto`) says who sits in the chair; the episode's `captain_policy` is the scripted captain's script. In `auto` the scripted captain answers at the next tick boundary, counting N in world ticks. In `hitl` the human answers; the script answers only when no bridge is connected to the run.
+
+**Instead of:** counting N × `tick_seconds` of wall time while paused, which gives the captain 20 s on camera and makes unattended evals wait real seconds.
+
+**Cost:** `approve_after` means nothing unless `world_advances_while_awaiting`, and a captain who walks away from an open bridge stalls the run.
+
+**Status:** Accepted.
+
+### 9. The gateway speaks one wire format and holds no provider SDK
+
+**Why:** `/v1/chat/completions` maps an alias to a provider entry in the run profile (base URL, model, key env var) and forwards the body with httpx. Alias, headers, budget, 402 and the full-body cache stay in the gateway; cost comes from the response's `usage` and a static price table.
+
+**Instead of:** FastAPI in front of LiteLLM, a large dependency for routing two OpenAI-compatible endpoints.
+
+**Cost:** Anthropic rides its compatibility layer, so prompt-caching control and extended thinking are unavailable through the gateway. A provider with no OpenAI-compatible endpoint means the gateway grows a translator.
+
+**Status:** Accepted.
