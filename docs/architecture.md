@@ -101,6 +101,8 @@ The Holodeck writes truth; the Ship exposes observations and reports actions. Ne
 - **Seeding.** Before a run's first event, the Holodeck writes the seeded manifest (crew, passengers, sections, flags) into `world`; the Manifest system reads it like any other truth.
 - **Event relay, and why there is one queue.** The Holodeck publishes clock ticks and raw readings to one internal exchange, `holodeck`, and stamps `ship_time` on each reading as it emits it. The relay consumes both from a single queue, so the Holodeck's order is the relay's order: a reading emitted at tick 10 cannot overtake tick 10 and be seen under tick 9. The relay forwards ticks to `subspace` as `clock.tick`, validates each reading against the contract schema, verifies that the reading's `ship_time` matches the tick it arrived under (a mismatch is a Holodeck bug and fails loudly, never a silent correction), stamps `event_id`, `run_id` and `traceparent`, and publishes on `subspace`. Inbound contract enforcement lives here. The relay is a singleton (single-active-consumer on the `holodeck` queue) and acks each message only after publishing it, so a restart replays nothing under the wrong tick. Crews cannot read `clock.*` or the `holodeck` exchange; the clock process reads station heartbeats from `subspace` for the lockstep predicate and is the only producer of ticks.
 
+- **Run control.** The Ship starts and pauses runs over `control`, a Ship-only exchange (decisions-m1 7). `POST /runs` publishes `run.start` with the resolved profile and episode; a long-running Holodeck service consumes it and runs the clock. When an incident enters `awaiting_captain` the Ship publishes `run.pause`, and `run.resume` when no incident is awaiting; the message sets the clock's pause predicate. A tick may go out between the order request and the pause. Crews cannot read or write this exchange.
+
 ### 1. Events (inbound)
 
 An event is a reading or a signal from a ship system: the Holodeck caused it, the Ship relayed it, and it says nothing about which incident it belongs to. Crews bind queues on the `subspace` topic exchange and react to what their instruments report, with no other context. Whether two readings are one incident is the crew's call, made through the Incident Desk, and scored.
@@ -254,7 +256,7 @@ An episode file is shorter: a header and a list of beats with `start` triggers (
   "episode": "unlisted",
   "title": "Unlisted",
   "clock": {"tick_seconds": 1.0},
-  "captain_policy": {"default": "approve_after", "ticks": 20},
+  "captain_policy": {"default": "approve"},
   "debrief": {"reveal": "A stowaway rode aboard in a cargo container and was heading for engineering access on deck 8."},
   "beats": [
     {"beat": "unlisted-lifeform", "start": {"at": 0}, "linked": true}
@@ -299,7 +301,13 @@ Every setting belongs to one of three buckets. The test: would two runs that dif
 | Run profile | How it is played | Clock mode and ratio, lockstep budget, `max_catchup_ticks`, crew and live stations, drive mode, captain (`hitl` or `auto`, with an optional policy that overrides the episode's), seed | `profiles/*.json`, validated by `RunConfig` in the contract; `profiles/demo.json` and `profiles/eval.json` ship with the repo |
 | Environment | Where it runs | Broker, database and collector URLs; provider keys | `infra/.env` now; pydantic-settings per process later |
 
-A run is `moriarty run <episode> [profile.json] [--seed N]`, and `--seed` is the only flag (decisions-m0 19). With no seed anywhere the CLI draws a 32-bit one, prints it first, and every random stream in the Holodeck derives from it. `runs/<run_id>/manifest.json` records the resolved profile, the episode path and hash, the seed and the git sha, so a run replays from the manifest alone. The captain setting shows the split: the episode says what an unattended captain does, and the profile says whether a human sits in the chair. With `auto` the policy answers every order; with `hitl` a human answers on the bridge and the policy is the fallback.
+A run is `moriarty run <episode> [profile.json] [--seed N]`, and `--seed` is the only flag (decisions-m0 19). With no seed anywhere the CLI draws a 32-bit one, prints it first, and every random stream in the Holodeck derives from it. `runs/<run_id>/manifest.json` records the resolved profile, the episode path and hash, the seed and the git sha, so a run replays from the manifest alone. The captain setting shows the split (decisions-m1 8). Three terms:
+
+- `captain` (run profile, `hitl` | `auto`): who sits in the chair.
+- `captain_policy` (episode header, overridable by the profile): the scripted captain's script.
+- The scripted captain: the Ship component that plays `captain_policy`. It counts world ticks, so `approve_after N` waits N ticks only in a beat with `world_advances_while_awaiting: true`; with the clock paused it answers at once.
+
+With `auto` the scripted captain answers every order at the next tick boundary. With `hitl` the human answers on the bridge with no timeout in M1; the scripted captain answers only when no bridge is connected to the run.
 
 ## Crew
 
@@ -464,11 +472,11 @@ What the gateway owns because it sits in the Ship:
 - Cost accounting in one place: crews pass `X-Run-Id`, `X-Incident-Id` and `X-Station` headers; the gateway records tokens and cost per run and enforces the Dilithium budget. The budget is in tokens with a dollar estimate beside it, scoped per incident and per run, and counted in both drive modes (Impulse tokens cost nothing but still measure verbosity). Exceeding it returns **402** with a structured body that says escalate; 429 is wrong here because every client retries it. A crew that ignores the 402 shows on the scorecard.
 - Fair comparison: two crews on the same aliases get the same models; switching drive mode is one gateway change, not six.
 - Response cache keyed on the full request body (model, messages, tools, temperature) for the deterministic eval runs.
-- Rate limiting and queueing in front of Ollama's serial execution, so five stations hitting it at once queue at the gateway instead of each handling timeouts. Ollama is reached through its native chat API (LiteLLM `ollama_chat/`), not its OpenAI shim, because tool calling and JSON-schema output are better supported there.
+- Rate limiting and queueing in front of Ollama's serial execution, so five stations hitting it at once queue at the gateway instead of each handling timeouts. Ollama is reached at its OpenAI-compatible `/v1` endpoint, like every other provider (decisions-m1 9).
 - One OTel span per model call (model, backend, tokens, cache hit, latency) under the crew's `traceparent`.
 - A simpler network rule: a crew may reach the bus, the MCP services, and the gateway, nothing else.
 
-Build vs. buy: LiteLLM proxy does most of this out of the box (aliases, fallbacks, per-key budgets and spend, caching, Anthropic translation) and is a legitimate thing to have run. The per-incident budget, the 402 semantics and the headers are Moriarty-specific, so the shape is a thin FastAPI layer in front for budget, headers and spans, with LiteLLM behind it for providers. It exists from M1, because it is the only place cost and model spans come from and plumbing it in later means touching every station.
+Build vs. buy (decisions-m1 9): the gateway speaks one wire format, OpenAI chat completions at `/v1/chat/completions`, and holds no provider SDK. Each alias maps to a provider entry in the run profile (base URL, model, key env var); the gateway forwards the body with httpx and keeps aliases, headers, budget, 402, the cache and spans itself. Cost comes from the response's `usage` and a static per-model price table, with no tokenizer. M1 providers are Ollama's `/v1` and Anthropic's OpenAI-compatible endpoint, so provider-specific features (prompt-caching control, extended thinking) are not reachable through it. A LiteLLM proxy would cover more providers, but it is a large dependency for routing two compatible endpoints. The gateway exists from M1, because it is the only place cost and model spans come from and plumbing it in later means touching every station.
 
 ## Observability (Tricorder)
 
@@ -564,7 +572,7 @@ Standard technologies throughout; nothing exotic, so the architecture is the int
 | Python | Most recent stable release; uv for project and dependency management; ruff and black for code quality; pydantic models for every contract schema (the JSON Schemas in `ship/contract/` are generated from them); pytest with testcontainers for anything that needs the bus or Postgres |
 | TypeScript | Strict; contract types generated from the same JSON Schemas so the bridge and the Ship never drift; Vitest and React Testing Library for a maintained unit set; Playwright for a few end-to-end flows (an incident appears on the bridge, the captain approves an order, replay scrubs) |
 | Agents | Any, per crew. Reference crews on LangGraph (state, checkpointing, interrupts) with LangChain model and tool adapters, most recent stable releases |
-| Models | Ollama (Impulse); Anthropic Haiku 5.5 or OpenRouter (Warp); embeddings on Ollama always; all behind the Warp Core gateway (FastAPI in front of LiteLLM) |
+| Models | Ollama (Impulse); Anthropic Haiku 5.5 or OpenRouter (Warp); embeddings on Ollama always; all behind the Warp Core gateway (FastAPI, OpenAI chat completions forwarded with httpx) |
 | Tools | MCP servers over streamable HTTP, stateless mode (Python MCP SDK / FastMCP), one per ship system |
 | Messaging | RabbitMQ, most recent stable; topic exchange `subspace` with per-crew users and topic permissions; quorum queues with a delivery limit; dead-letter queue `lost-hail` |
 | Storage | Postgres, most recent stable, with pgvector; schemas `world` (Holodeck-writable truth), `ship` (incidents, log, audit, archive); Redis only inside crews that want it |
@@ -585,7 +593,7 @@ moriarty/
     systems/       # one MCP server per ship system; action-stream publishing; allowlists; order checks
     desk/          # Incident Desk: incidents, linking, reports, orders
     librarian/     # archive ingestion, hybrid search, MCP server, Ship-stamped write-back
-    gateway/       # Warp Core: budget, headers, spans, LiteLLM config
+    gateway/       # Warp Core: aliases, budget, headers, cache, spans
     api/           # FastAPI: bridge feed, captain's chair, replay, Holodeck console
   crews/
     rules/         # no-LLM baseline
@@ -667,7 +675,7 @@ Each milestone is a reviewable chunk: it has a definition of done, it ends with 
 
 - *Episode* "Unlisted" (`scenarios/episodes/unlisted.episode.json`). Sensors count one more lifeform in a deck 7 section than the manifest lists. A passenger who left their quarters shows up as an extra in another section (the decoy). The real extra, a stowaway from a cargo container, moves toward engineering access on deck 8. Sealing is free in this episode and `detain` needs an order. Win if the stowaway is contained before reaching engineering, partial if after, fail if the decoy section is sealed and the stowaway gets through. The demo profile plays it in ratio mode at 2 ticks per second; it lasts about four ship minutes. No Archive, faults or chaos.
 - *Holodeck* (`m1/holodeck-beats`): the Doyle parser and contract models for one episode, seeded parameters, the beat engine (`when`, `emit`, `advance`) driven by the clock and reacting only to the action stream, the derived sensor view over `world.persons` with the decoy and noise, resolution by precedence, and the fact set the debrief reads.
-- *Ship* (`m1/ship-systems`): Sensors, Manifest, Bulkheads and Security as MCP servers with the tools the episode needs (`scan_section`, `lookup_person`, `seal_section`, `unseal_section`, `dispatch_team`, `detain`); the Incident Desk (`open_incident`, `attach_event`, `request_order`, `file_report`); the Captain's Chair with `hitl` and the episode policy as fallback; the gateway (aliases `triage` and `summary`, the three headers, 402, response cache, `ollama_chat/`); the Ship API (`POST /runs`, run status, one live stream for the bridge, order approval); the comms envelope, the action stream and a per-crew RabbitMQ user; the judge and the debrief.
+- *Ship* (`m1/ship-systems`): Sensors, Manifest, Bulkheads and Security as MCP servers with the tools the episode needs (`scan_section`, `lookup_person`, `seal_section`, `unseal_section`, `dispatch_team`, `detain`); the Incident Desk (`open_incident`, `attach_event`, `request_order`, `file_report`); the Captain's Chair with `hitl` and the scripted captain as fallback; the gateway (aliases `triage` and `summary`, the three headers, 402, response cache, Ollama at `/v1`); the Ship API (`POST /runs`, run status, one live stream for the bridge, order approval); the comms envelope, the action stream and a per-crew RabbitMQ user; the judge and the debrief.
 - *Crew* (`m1/crew-xo`): `crew-xo` on LangGraph with XO, Ops and Security live and the other stations on `standby`; GenAI span conventions; versioned prompts with the prompt hash on `file_report`; compose profile `crew-xo` on `crew-net`. `crew-single` is the fallback if three stations are unreliable on camera.
 - *Bridge* (`m1/bridge`): the Live screen at `/bridge/:runId` on the Mycroft React components: status strip (condition, ship time, incident state), station cards, comms with the muted tool layer, the Captain's Chair order prompt, the outcome banner and the Captain's Log. Fed by the Ship API stream; resyncs on reconnect.
 - *CLI* (`m1/cli`): `moriarty up`, `down`, `status`, `logs`, `doctor`, `run`, `schema`. `run` is the one entry point the video uses (Configuration). Every verb that starts a run goes through the Ship API, the same path the harness and the Scenarios screen use later; the CLI is the terminal face of it, never a second way in.
@@ -705,7 +713,8 @@ If M2+ scope must be cut, the order is: Kubernetes, live Medical and Engineering
 - [x] **Relay rejections, M0.** The relay rejects without requeue anything it cannot relay (unknown routing key, invalid payload, `ship_time` mismatch, a reading before any tick); the queue's dead-letter exchange routes it to `lost-hail`. Process errors are not rejected; the delivery limit dead-letters a message that keeps failing.
 - [x] **Contract schema files, M0.** One file per model in `ship/contract/schema/`, snake-case model name (`raw_observation.json`), keys sorted. `observed` locations are `deck` (integer from 1) and `section` (non-empty string).
 - [x] **Connection settings, M0.** Processes read `AMQP_URL`, `DATABASE_URL` and `OTEL_EXPORTER_OTLP_ENDPOINT` from the environment (`infra/.env` via `uv run --env-file`).
-- [ ] **HITL fallback trigger.** With captain `hitl`, when the episode's `captain_policy` answers instead: no bridge connected, or no answer within N ticks. Decide in `m1/ship-systems`.
+- [x] **HITL fallback trigger.** Decided in decisions-m1 8: with `hitl`, the scripted captain answers only when no bridge is connected to the run.
+- [x] **Run control.** Decided in decisions-m1 7: the Ship starts and pauses runs over a Ship-only control exchange the Holodeck service consumes.
 - [x] **Debrief branch, M1.** The debrief (NIM-21) is built in `m1/ship-systems` after `m1/holodeck-beats` lands the fact set; the Ship writes it, the Holodeck only supplies truth.
 - [x] **Version freshness, M0.** `exclude-newer` in the root `pyproject.toml` keeps Python packages out of the two weeks before the pin; Python is 3.14 (3.15.0 was inside that window at kickoff); compose image tags follow the same rule. Pre-commit hooks run the locked ruff and black through `uv run`, so there is one version source.
 
@@ -725,6 +734,7 @@ One rule keeps this from getting cute: **code, schemas and the contract use plai
 | Report claim | `resolved`, `escalated`, `cannot_resolve` |
 | Drive mode | `local`, `remote` |
 | Clock mode | `lockstep`, `ratio` |
+| Captain | `hitl`, `auto` |
 | Tool error | `unavailable`, `timeout`, `stale`, `partial`, `requires_authorization`, `not_allowed` |
 | Fault kind | `unavailable`, `stale`, `transient`, `silent` |
 | Fault source | `beat`, `chaos`, `director` |
