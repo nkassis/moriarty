@@ -1,0 +1,23 @@
+{
+  "additionalProperties": false,
+  "description": "`run.pause` on `control`: an incident entered `awaiting_captain`.",
+  "properties": {
+    "incident_id": {
+      "description": "e.g. INC-0042",
+      "pattern": "^INC-\\d{4,}$",
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "run_id": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "incident_id"
+  ],
+  "title": "RunPause",
+  "type": "object"
+}

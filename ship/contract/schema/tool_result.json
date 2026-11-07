@@ -1,0 +1,106 @@
+{
+  "$defs": {
+    "JsonValue": {},
+    "ToolError": {
+      "enum": [
+        "unavailable",
+        "timeout",
+        "stale",
+        "partial",
+        "requires_authorization",
+        "not_allowed"
+      ],
+      "title": "ToolError",
+      "type": "string"
+    },
+    "ToolErrorBody": {
+      "additionalProperties": false,
+      "description": "A structured tool error. `retry_after` (ticks) is present exactly when `retryable`;\n`age` (ticks) only on `stale`.",
+      "properties": {
+        "age": {
+          "anyOf": [
+            {
+              "description": "Ticks since run start",
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Age"
+        },
+        "error": {
+          "$ref": "#/$defs/ToolError"
+        },
+        "message": {
+          "maxLength": 120,
+          "title": "Message",
+          "type": "string"
+        },
+        "retry_after": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry After"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "error",
+        "message",
+        "retryable"
+      ],
+      "title": "ToolErrorBody",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "What an action tool returned: `data` on success, `error` otherwise. `replayed` is\ntrue when an `idempotency_key` returned the recorded result.",
+  "properties": {
+    "data": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Data"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ToolErrorBody"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "replayed": {
+      "default": false,
+      "title": "Replayed",
+      "type": "boolean"
+    }
+  },
+  "title": "ToolResult",
+  "type": "object"
+}

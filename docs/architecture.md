@@ -159,6 +159,19 @@ The Ship closes incidents, not the crew. A station files `file_report` on the In
 
 **Debrief (Captain's Log).** When a run resolves, the Ship writes a blameless postmortem in the SRE format from three inputs it already holds: the episode's truth timeline (beats, derived state, the decoy), the action stream, and the crew's `file_report`. Sections: summary; impact (casualties, damage, sections sealed, time under containment); timeline (truth and crew actions interleaved, tick-stamped); root cause (the episode's `debrief.reveal`, verbatim); detection (time to first action, what tipped the crew off); what went well; what went poorly (a decoy sealed, retried calls, unnecessary escalations); action items (prompt and tool changes, never people). Two renderers read one fact set, the `Debrief` model in the contract: a template with no model call, used on the judgment path and later by the harness, and an LLM rendering through the gateway's `summary` alias, for display only. The output is `runs/<run_id>/postmortem.md` beside the manifest and the trace id, served on the Ship API. The debrief is not a fifth contract point: the crew never receives it and nothing in it feeds back into the run. Writing it into the Archive as this ship's incident record is M2+.
 
+### Ship API
+
+FastAPI, OpenAPI at `/docs`. Request and response bodies are contract models (`ship/contract/runs.py`, `ship/contract/stream.py`).
+
+| Endpoint | Body | Returns |
+| --- | --- | --- |
+| `POST /runs` | `CreateRun` (episode name, `RunConfig`) | `RunStatus`; the Ship draws the seed if the profile has none |
+| `GET /runs/{run_id}` | | `RunStatus` |
+| `POST /runs/{run_id}/orders/{order_id}/decision` | `OrderDecision` (`approve` or `deny`) | `Order` |
+| `WS /runs/{run_id}/stream` | | `StreamMessage`, one per frame |
+
+The stream opens with a `snapshot` of the run's current state (status, alert condition, heartbeat, incidents, orders, recent comms and tool lines), then sends one message per change: `comms`, `tool`, `stations`, `incident`, `order`, `clock`, `alert`, `outcome`. `seq` rises by one per message on a connection; a client that sees a gap reconnects and resyncs from the next snapshot. A connected stream is what "a bridge is connected to the run" means in decisions-m1 8.
+
 ## Holodeck and episodes
 
 The Holodeck is a screenwriter, not an event generator. The unit of authoring is a **beat**: a self-contained scenario fragment with its own hidden state, reactions and resolution (an unlisted lifeform appears on deck N; a contagion starts; a coolant line fails; an unidentified vessel enters sensor range). An **episode** is a list of beats with triggers and optional causal links. Events are what the ship observes as beats play out; the crew reconstructs the plot from readings.
@@ -398,6 +411,7 @@ The comms channel is a passive consumer bound to `comms.#` on the bus, forwarded
 | Field | Notes |
 | --- | --- |
 | `message_id` | uuid |
+| `run_id` | uuid; the run the line belongs to |
 | `in_reply_to` | message id this answers (required on `ack` and on a `report` that answers a `request`) |
 | `from` | station name, `captain`, or `ship` for system lines |
 | `to` | a station, `bridge`, `captain`, or `all` |
@@ -406,7 +420,7 @@ The comms channel is a passive consumer bound to `comms.#` on the bus, forwarded
 | `kind` | `request`, `report`, `ack`, `order`, `escalation`, `system` |
 | `text` | the protocol line, 160 characters max |
 | `payload` | structured content behind the text, schema per kind (request: task; report: findings, sources, confidence; escalation: requested tool and args, rationale; order: `order_id`, authorized tool and args) |
-| `ship_time` | stamped by the Ship on publish |
+| `ship_time` | left empty by crews; the Ship's comms tap stamps it before the bridge stream and the log see the line |
 | `traceparent` | W3C trace context of the run that produced it |
 
 Routing key: `comms.<channel>.<kind>`, so a station binds to orders and requests on its incidents without consuming whole channels. The console shows wire kinds through a fixed display mapping (Mycroft CommLine kinds): request and ack as `message`, report as `finding`, escalation and order as `decision`, system as `system`; tool calls from the action stream as `tool` in the muted internal layer.
@@ -716,6 +730,10 @@ If M2+ scope must be cut, the order is: Kubernetes, live Medical and Engineering
 - [x] **HITL fallback trigger.** Decided in decisions-m1 8: with `hitl`, the scripted captain answers only when no bridge is connected to the run.
 - [x] **Run control.** Decided in decisions-m1 7: the Ship starts and pauses runs over a Ship-only control exchange the Holodeck service consumes.
 - [x] **Debrief branch, M1.** The debrief (NIM-21) is built in `m1/ship-systems` after `m1/holodeck-beats` lands the fact set; the Ship writes it, the Holodeck only supplies truth.
+- [x] **Comms `ship_time`, M1.** Crews cannot read `clock.*`, so they publish comms with `ship_time` empty and the Ship's comms tap stamps it.
+- [x] **Heartbeat `seen_tick`, M1.** The heartbeat carries the latest `ship_time` the crew observed, from events; lockstep with a crew that sees no events between ticks is M2+ work.
+- [x] **Budget location, M1.** The token budget (`incident_tokens`, `run_tokens`) sits in `RunConfig` for v0.1. It changes outcomes through the 402, so it moves to the episode header when the harness compares runs (M2+).
+- [x] **Stream transport, M1.** One WebSocket per run; a snapshot on connect and `seq` per message, so resync is reconnect-and-replace.
 - [x] **Version freshness, M0.** `exclude-newer` in the root `pyproject.toml` keeps Python packages out of the two weeks before the pin; Python is 3.14 (3.15.0 was inside that window at kickoff); compose image tags follow the same rule. Pre-commit hooks run the locked ruff and black through `uv run`, so there is one version source.
 
 ## Vocabulary
@@ -735,6 +753,8 @@ One rule keeps this from getting cute: **code, schemas and the contract use plai
 | Drive mode | `local`, `remote` |
 | Clock mode | `lockstep`, `ratio` |
 | Captain | `hitl`, `auto` |
+| Verdict | `approve`, `deny` |
+| Alert condition | `green`, `yellow`, `red` |
 | Tool error | `unavailable`, `timeout`, `stale`, `partial`, `requires_authorization`, `not_allowed` |
 | Fault kind | `unavailable`, `stale`, `transient`, `silent` |
 | Fault source | `beat`, `chaos`, `director` |

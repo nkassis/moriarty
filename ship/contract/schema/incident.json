@@ -1,0 +1,70 @@
+{
+  "$defs": {
+    "IncidentState": {
+      "enum": [
+        "open",
+        "investigating",
+        "acting",
+        "awaiting_captain",
+        "closed"
+      ],
+      "title": "IncidentState",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "An incident as the crew and the bridge see it; never the beat's act.",
+  "properties": {
+    "events": {
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "title": "Events",
+      "type": "array"
+    },
+    "incident_id": {
+      "description": "e.g. INC-0042",
+      "pattern": "^INC-\\d{4,}$",
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "opened_at": {
+      "description": "Ticks since run start",
+      "minimum": 0,
+      "title": "Opened At",
+      "type": "integer"
+    },
+    "owner": {
+      "description": "e.g. ops",
+      "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+      "title": "Owner",
+      "type": "string"
+    },
+    "run_id": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "state": {
+      "$ref": "#/$defs/IncidentState"
+    },
+    "updated_at": {
+      "description": "Ticks since run start",
+      "minimum": 0,
+      "title": "Updated At",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "incident_id",
+    "run_id",
+    "state",
+    "owner",
+    "events",
+    "opened_at",
+    "updated_at"
+  ],
+  "title": "Incident",
+  "type": "object"
+}

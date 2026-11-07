@@ -1,0 +1,272 @@
+{
+  "$defs": {
+    "Budget": {
+      "additionalProperties": false,
+      "description": "Token budget the gateway enforces; past either, it answers 402.",
+      "properties": {
+        "incident_tokens": {
+          "exclusiveMinimum": 0,
+          "title": "Incident Tokens",
+          "type": "integer"
+        },
+        "run_tokens": {
+          "exclusiveMinimum": 0,
+          "title": "Run Tokens",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "incident_tokens",
+        "run_tokens"
+      ],
+      "title": "Budget",
+      "type": "object"
+    },
+    "Captain": {
+      "description": "Who sits in the chair (decisions-m1 8).",
+      "enum": [
+        "hitl",
+        "auto"
+      ],
+      "title": "Captain",
+      "type": "string"
+    },
+    "CaptainPolicy": {
+      "additionalProperties": false,
+      "description": "The scripted captain's script (decisions-m1 8). `approve_after` counts world ticks;\n`only` limits approval to the listed tools and denies the rest.",
+      "properties": {
+        "default": {
+          "enum": [
+            "approve",
+            "deny",
+            "approve_after"
+          ],
+          "title": "Default",
+          "type": "string"
+        },
+        "only": {
+          "anyOf": [
+            {
+              "items": {
+                "description": "e.g. seal_section",
+                "pattern": "^[a-z][a-z_]{0,63}$",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Only"
+        },
+        "ticks": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ticks"
+        }
+      },
+      "required": [
+        "default"
+      ],
+      "title": "CaptainPolicy",
+      "type": "object"
+    },
+    "ClockMode": {
+      "enum": [
+        "lockstep",
+        "ratio"
+      ],
+      "title": "ClockMode",
+      "type": "string"
+    },
+    "ClockSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "lockstep_budget": {
+          "default": 2.0,
+          "description": "wall seconds",
+          "exclusiveMinimum": 0,
+          "title": "Lockstep Budget",
+          "type": "number"
+        },
+        "max_catchup_ticks": {
+          "default": 10,
+          "minimum": 0,
+          "title": "Max Catchup Ticks",
+          "type": "integer"
+        },
+        "mode": {
+          "$ref": "#/$defs/ClockMode"
+        },
+        "ratio": {
+          "default": 1.0,
+          "description": "ratio mode: ticks per wall second",
+          "exclusiveMinimum": 0,
+          "title": "Ratio",
+          "type": "number"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "title": "ClockSettings",
+      "type": "object"
+    },
+    "DriveMode": {
+      "enum": [
+        "local",
+        "remote"
+      ],
+      "title": "DriveMode",
+      "type": "string"
+    },
+    "ProviderRoute": {
+      "additionalProperties": false,
+      "description": "Where the gateway sends an alias (decisions-m1 9). `key_env` names the gateway's\nenvironment variable holding the key; the key itself never appears in a profile.",
+      "properties": {
+        "base_url": {
+          "description": "OpenAI-compatible /v1",
+          "pattern": "^https?://\\S+$",
+          "title": "Base Url",
+          "type": "string"
+        },
+        "key_env": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Z][A-Z0-9_]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Key Env"
+        },
+        "model": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        }
+      },
+      "required": [
+        "base_url",
+        "model"
+      ],
+      "title": "ProviderRoute",
+      "type": "object"
+    },
+    "RunConfig": {
+      "additionalProperties": false,
+      "description": "A run profile (`profiles/*.json`): how an episode is played.",
+      "properties": {
+        "budget": {
+          "$ref": "#/$defs/Budget"
+        },
+        "captain": {
+          "$ref": "#/$defs/Captain"
+        },
+        "captain_policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CaptainPolicy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "clock": {
+          "$ref": "#/$defs/ClockSettings"
+        },
+        "crew": {
+          "description": "e.g. crew-xo",
+          "pattern": "^[a-z][a-z0-9-]{0,31}$",
+          "title": "Crew",
+          "type": "string"
+        },
+        "drive": {
+          "$ref": "#/$defs/DriveMode"
+        },
+        "live_stations": {
+          "items": {
+            "description": "e.g. ops",
+            "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Live Stations",
+          "type": "array"
+        },
+        "models": {
+          "patternProperties": {
+            "^[a-z][a-z0-9_-]{0,31}$": {
+              "$ref": "#/$defs/ProviderRoute"
+            }
+          },
+          "propertyNames": {
+            "description": "e.g. triage"
+          },
+          "title": "Models",
+          "type": "object"
+        },
+        "seed": {
+          "anyOf": [
+            {
+              "exclusiveMaximum": 4294967296,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Seed"
+        }
+      },
+      "required": [
+        "clock",
+        "crew",
+        "live_stations",
+        "drive",
+        "captain",
+        "models",
+        "budget"
+      ],
+      "title": "RunConfig",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "`POST /runs`. With no seed in the profile the Ship draws one and returns it.",
+  "properties": {
+    "episode": {
+      "description": "e.g. unlisted",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$",
+      "title": "Episode",
+      "type": "string"
+    },
+    "profile": {
+      "$ref": "#/$defs/RunConfig"
+    }
+  },
+  "required": [
+    "episode",
+    "profile"
+  ],
+  "title": "CreateRun",
+  "type": "object"
+}
