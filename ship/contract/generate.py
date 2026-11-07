@@ -6,10 +6,46 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
+from ship.contract.actions import ActionEvent, ToolErrorBody, ToolResult
+from ship.contract.comms import CommsMessage
+from ship.contract.crew import Heartbeat
+from ship.contract.desk import Incident, IncidentClosed, Order, Report
 from ship.contract.models import ClockTick, Event, LifeformMismatch, RawObservation
+from ship.contract.runs import (
+    CreateRun,
+    OrderDecision,
+    RunConfig,
+    RunPause,
+    RunResume,
+    RunStart,
+    RunStatus,
+)
+from ship.contract.stream import StreamMessage
 
 SCHEMA_DIR = Path(__file__).parent / "schema"
-MODELS: tuple[type[BaseModel], ...] = (ClockTick, Event, LifeformMismatch, RawObservation)
+MODELS: tuple[type[BaseModel], ...] = (
+    ClockTick,
+    Event,
+    LifeformMismatch,
+    RawObservation,
+    CommsMessage,
+    Heartbeat,
+    ActionEvent,
+    ToolErrorBody,
+    ToolResult,
+    Incident,
+    Order,
+    Report,
+    IncidentClosed,
+    RunConfig,
+    CreateRun,
+    RunStatus,
+    OrderDecision,
+    RunStart,
+    RunPause,
+    RunResume,
+    StreamMessage,
+)
 
 
 def schema_filename(model: type[BaseModel]) -> str:

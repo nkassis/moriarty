@@ -1,0 +1,116 @@
+{
+  "$defs": {
+    "JsonValue": {},
+    "Verdict": {
+      "description": "A captain's answer to an order request.",
+      "enum": [
+        "approve",
+        "deny"
+      ],
+      "title": "Verdict",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "An order request and its answer. `verdict` is empty while pending; an approved order's\n`order_id` is what an order-gated tool checks, for this incident and tool only.",
+  "properties": {
+    "args": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Args",
+      "type": "object"
+    },
+    "decided_at": {
+      "anyOf": [
+        {
+          "description": "Ticks since run start",
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Decided At"
+    },
+    "decided_by": {
+      "anyOf": [
+        {
+          "description": "captain or scripted_captain",
+          "pattern": "^(captain|scripted_captain)$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Decided By"
+    },
+    "incident_id": {
+      "description": "e.g. INC-0042",
+      "pattern": "^INC-\\d{4,}$",
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "order_id": {
+      "format": "uuid",
+      "title": "Order Id",
+      "type": "string"
+    },
+    "rationale": {
+      "description": "One line, 160 characters max",
+      "maxLength": 160,
+      "title": "Rationale",
+      "type": "string"
+    },
+    "requested_at": {
+      "description": "Ticks since run start",
+      "minimum": 0,
+      "title": "Requested At",
+      "type": "integer"
+    },
+    "requested_by": {
+      "description": "e.g. ops",
+      "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+      "title": "Requested By",
+      "type": "string"
+    },
+    "run_id": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "tool": {
+      "description": "e.g. seal_section",
+      "pattern": "^[a-z][a-z_]{0,63}$",
+      "title": "Tool",
+      "type": "string"
+    },
+    "verdict": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Verdict"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "order_id",
+    "run_id",
+    "incident_id",
+    "requested_by",
+    "tool",
+    "args",
+    "rationale",
+    "requested_at"
+  ],
+  "title": "Order",
+  "type": "object"
+}

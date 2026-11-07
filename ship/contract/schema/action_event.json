@@ -1,0 +1,221 @@
+{
+  "$defs": {
+    "JsonValue": {},
+    "Source": {
+      "description": "The ship system that produced a reading; the same names as the MCP servers.",
+      "enum": [
+        "sensors",
+        "manifest",
+        "bulkheads",
+        "security",
+        "sickbay",
+        "engineering",
+        "librarian",
+        "comms"
+      ],
+      "title": "Source",
+      "type": "string"
+    },
+    "ToolError": {
+      "enum": [
+        "unavailable",
+        "timeout",
+        "stale",
+        "partial",
+        "requires_authorization",
+        "not_allowed"
+      ],
+      "title": "ToolError",
+      "type": "string"
+    },
+    "ToolErrorBody": {
+      "additionalProperties": false,
+      "description": "A structured tool error. `retry_after` (ticks) is present exactly when `retryable`;\n`age` (ticks) only on `stale`.",
+      "properties": {
+        "age": {
+          "anyOf": [
+            {
+              "description": "Ticks since run start",
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Age"
+        },
+        "error": {
+          "$ref": "#/$defs/ToolError"
+        },
+        "message": {
+          "maxLength": 120,
+          "title": "Message",
+          "type": "string"
+        },
+        "retry_after": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry After"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "error",
+        "message",
+        "retryable"
+      ],
+      "title": "ToolErrorBody",
+      "type": "object"
+    },
+    "ToolResult": {
+      "additionalProperties": false,
+      "description": "What an action tool returned: `data` on success, `error` otherwise. `replayed` is\ntrue when an `idempotency_key` returned the recorded result.",
+      "properties": {
+        "data": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Data"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ToolErrorBody"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "replayed": {
+          "default": false,
+          "title": "Replayed",
+          "type": "boolean"
+        }
+      },
+      "title": "ToolResult",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One action tool call, on the Ship-only `action.<system>.<tool>`. The Holodeck reacts to\nit, the judge scores it and the bridge renders it as a muted `tool` line.",
+  "properties": {
+    "action_id": {
+      "format": "uuid",
+      "title": "Action Id",
+      "type": "string"
+    },
+    "args": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Args",
+      "type": "object"
+    },
+    "idempotency_key": {
+      "description": "A crew passes `event_id:step`",
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Idempotency Key",
+      "type": "string"
+    },
+    "incident_id": {
+      "anyOf": [
+        {
+          "description": "e.g. INC-0042",
+          "pattern": "^INC-\\d{4,}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Incident Id"
+    },
+    "order_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Order Id"
+    },
+    "result": {
+      "$ref": "#/$defs/ToolResult"
+    },
+    "run_id": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "ship_time": {
+      "description": "Ticks since run start",
+      "minimum": 0,
+      "title": "Ship Time",
+      "type": "integer"
+    },
+    "station": {
+      "description": "e.g. ops",
+      "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+      "title": "Station",
+      "type": "string"
+    },
+    "system": {
+      "$ref": "#/$defs/Source"
+    },
+    "tool": {
+      "description": "e.g. seal_section",
+      "pattern": "^[a-z][a-z_]{0,63}$",
+      "title": "Tool",
+      "type": "string"
+    },
+    "wall_time": {
+      "format": "date-time",
+      "title": "Wall Time",
+      "type": "string"
+    }
+  },
+  "required": [
+    "action_id",
+    "run_id",
+    "system",
+    "tool",
+    "station",
+    "args",
+    "idempotency_key",
+    "result",
+    "ship_time",
+    "wall_time"
+  ],
+  "title": "ActionEvent",
+  "type": "object"
+}

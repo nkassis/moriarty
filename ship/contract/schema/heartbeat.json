@@ -1,0 +1,126 @@
+{
+  "$defs": {
+    "AgentState": {
+      "enum": [
+        "idle",
+        "thinking",
+        "acting",
+        "standby"
+      ],
+      "title": "AgentState",
+      "type": "string"
+    },
+    "Division": {
+      "enum": [
+        "command",
+        "ops",
+        "science"
+      ],
+      "title": "Division",
+      "type": "string"
+    },
+    "StationStatus": {
+      "additionalProperties": false,
+      "description": "One station as the Stations panel shows it.",
+      "properties": {
+        "activity": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Activity"
+        },
+        "division": {
+          "$ref": "#/$defs/Division"
+        },
+        "incident_id": {
+          "anyOf": [
+            {
+              "description": "e.g. INC-0042",
+              "pattern": "^INC-\\d{4,}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Incident Id"
+        },
+        "index": {
+          "maximum": 99,
+          "minimum": 1,
+          "title": "Index",
+          "type": "integer"
+        },
+        "name": {
+          "description": "e.g. ops",
+          "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+          "title": "Name",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/AgentState"
+        }
+      },
+      "required": [
+        "name",
+        "index",
+        "division",
+        "state"
+      ],
+      "title": "StationStatus",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Every station a crew defines, live or `standby`. `seen_tick` is the latest\n`ship_time` the crew has observed, for the lockstep predicate.",
+  "properties": {
+    "crew": {
+      "description": "e.g. crew-xo",
+      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+      "title": "Crew",
+      "type": "string"
+    },
+    "run_id": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "seen_tick": {
+      "anyOf": [
+        {
+          "description": "Ticks since run start",
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Seen Tick"
+    },
+    "stations": {
+      "items": {
+        "$ref": "#/$defs/StationStatus"
+      },
+      "minItems": 1,
+      "title": "Stations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "crew",
+    "run_id",
+    "stations"
+  ],
+  "title": "Heartbeat",
+  "type": "object"
+}

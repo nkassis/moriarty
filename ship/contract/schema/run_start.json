@@ -1,0 +1,87 @@
+{
+  "$defs": {
+    "ClockMode": {
+      "enum": [
+        "lockstep",
+        "ratio"
+      ],
+      "title": "ClockMode",
+      "type": "string"
+    },
+    "ClockSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "lockstep_budget": {
+          "default": 2.0,
+          "description": "wall seconds",
+          "exclusiveMinimum": 0,
+          "title": "Lockstep Budget",
+          "type": "number"
+        },
+        "max_catchup_ticks": {
+          "default": 10,
+          "minimum": 0,
+          "title": "Max Catchup Ticks",
+          "type": "integer"
+        },
+        "mode": {
+          "$ref": "#/$defs/ClockMode"
+        },
+        "ratio": {
+          "default": 1.0,
+          "description": "ratio mode: ticks per wall second",
+          "exclusiveMinimum": 0,
+          "title": "Ratio",
+          "type": "number"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "title": "ClockSettings",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "`run.start` on `control`: the Holodeck service seeds the world and runs the clock.",
+  "properties": {
+    "clock": {
+      "$ref": "#/$defs/ClockSettings"
+    },
+    "episode": {
+      "description": "e.g. unlisted",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$",
+      "title": "Episode",
+      "type": "string"
+    },
+    "live_stations": {
+      "items": {
+        "description": "e.g. ops",
+        "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+        "type": "string"
+      },
+      "title": "Live Stations",
+      "type": "array"
+    },
+    "run_id": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "seed": {
+      "exclusiveMaximum": 4294967296,
+      "minimum": 0,
+      "title": "Seed",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "run_id",
+    "episode",
+    "seed",
+    "clock",
+    "live_stations"
+  ],
+  "title": "RunStart",
+  "type": "object"
+}

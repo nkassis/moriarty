@@ -56,6 +56,26 @@ class ClockMode(StrEnum):
     RATIO = "ratio"
 
 
+class Captain(StrEnum):
+    """Who sits in the chair (decisions-m1 8)."""
+
+    HITL = "hitl"
+    AUTO = "auto"
+
+
+class Verdict(StrEnum):
+    """A captain's answer to an order request."""
+
+    APPROVE = "approve"
+    DENY = "deny"
+
+
+class AlertCondition(StrEnum):
+    GREEN = "green"
+    YELLOW = "yellow"
+    RED = "red"
+
+
 class ToolError(StrEnum):
     UNAVAILABLE = "unavailable"
     TIMEOUT = "timeout"
@@ -106,6 +126,9 @@ CONTRACT_ENUMS: tuple[type[StrEnum], ...] = (
     ReportClaim,
     DriveMode,
     ClockMode,
+    Captain,
+    Verdict,
+    AlertCondition,
     ToolError,
     FaultKind,
     FaultSource,

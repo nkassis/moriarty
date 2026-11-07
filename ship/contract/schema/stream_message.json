@@ -1,0 +1,1240 @@
+{
+  "$defs": {
+    "ActionEvent": {
+      "additionalProperties": false,
+      "description": "One action tool call, on the Ship-only `action.<system>.<tool>`. The Holodeck reacts to\nit, the judge scores it and the bridge renders it as a muted `tool` line.",
+      "properties": {
+        "action_id": {
+          "format": "uuid",
+          "title": "Action Id",
+          "type": "string"
+        },
+        "args": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Args",
+          "type": "object"
+        },
+        "idempotency_key": {
+          "description": "A crew passes `event_id:step`",
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "incident_id": {
+          "anyOf": [
+            {
+              "description": "e.g. INC-0042",
+              "pattern": "^INC-\\d{4,}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Incident Id"
+        },
+        "order_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Order Id"
+        },
+        "result": {
+          "$ref": "#/$defs/ToolResult"
+        },
+        "run_id": {
+          "format": "uuid",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "ship_time": {
+          "description": "Ticks since run start",
+          "minimum": 0,
+          "title": "Ship Time",
+          "type": "integer"
+        },
+        "station": {
+          "description": "e.g. ops",
+          "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+          "title": "Station",
+          "type": "string"
+        },
+        "system": {
+          "$ref": "#/$defs/Source"
+        },
+        "tool": {
+          "description": "e.g. seal_section",
+          "pattern": "^[a-z][a-z_]{0,63}$",
+          "title": "Tool",
+          "type": "string"
+        },
+        "wall_time": {
+          "format": "date-time",
+          "title": "Wall Time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "action_id",
+        "run_id",
+        "system",
+        "tool",
+        "station",
+        "args",
+        "idempotency_key",
+        "result",
+        "ship_time",
+        "wall_time"
+      ],
+      "title": "ActionEvent",
+      "type": "object"
+    },
+    "AgentState": {
+      "enum": [
+        "idle",
+        "thinking",
+        "acting",
+        "standby"
+      ],
+      "title": "AgentState",
+      "type": "string"
+    },
+    "AlertCondition": {
+      "enum": [
+        "green",
+        "yellow",
+        "red"
+      ],
+      "title": "AlertCondition",
+      "type": "string"
+    },
+    "Captain": {
+      "description": "Who sits in the chair (decisions-m1 8).",
+      "enum": [
+        "hitl",
+        "auto"
+      ],
+      "title": "Captain",
+      "type": "string"
+    },
+    "CommsKind": {
+      "enum": [
+        "request",
+        "report",
+        "ack",
+        "order",
+        "escalation",
+        "system"
+      ],
+      "title": "CommsKind",
+      "type": "string"
+    },
+    "CommsMessage": {
+      "additionalProperties": false,
+      "description": "One comms line. Crews leave `ship_time` empty; the Ship stamps it before the bridge\nstream and the archive see the line.",
+      "properties": {
+        "channel": {
+          "description": "bridge, all, captain or an incident id",
+          "pattern": "^(bridge|all|captain|INC-\\d{4,})$",
+          "title": "Channel",
+          "type": "string"
+        },
+        "from": {
+          "description": "A station, `captain` or `ship`",
+          "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+          "title": "From",
+          "type": "string"
+        },
+        "in_reply_to": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "In Reply To"
+        },
+        "incident_id": {
+          "anyOf": [
+            {
+              "description": "e.g. INC-0042",
+              "pattern": "^INC-\\d{4,}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Incident Id"
+        },
+        "kind": {
+          "$ref": "#/$defs/CommsKind"
+        },
+        "message_id": {
+          "format": "uuid",
+          "title": "Message Id",
+          "type": "string"
+        },
+        "payload": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Payload",
+          "type": "object"
+        },
+        "run_id": {
+          "format": "uuid",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "ship_time": {
+          "anyOf": [
+            {
+              "description": "Ticks since run start",
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ship Time"
+        },
+        "text": {
+          "description": "One line, 160 characters max",
+          "maxLength": 160,
+          "title": "Text",
+          "type": "string"
+        },
+        "to": {
+          "description": "A station, `bridge`, `captain` or `all`",
+          "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+          "title": "To",
+          "type": "string"
+        },
+        "traceparent": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Traceparent"
+        }
+      },
+      "required": [
+        "message_id",
+        "run_id",
+        "from",
+        "to",
+        "channel",
+        "kind",
+        "text"
+      ],
+      "title": "CommsMessage",
+      "type": "object"
+    },
+    "Division": {
+      "enum": [
+        "command",
+        "ops",
+        "science"
+      ],
+      "title": "Division",
+      "type": "string"
+    },
+    "Heartbeat": {
+      "additionalProperties": false,
+      "description": "Every station a crew defines, live or `standby`. `seen_tick` is the latest\n`ship_time` the crew has observed, for the lockstep predicate.",
+      "properties": {
+        "crew": {
+          "description": "e.g. crew-xo",
+          "pattern": "^[a-z][a-z0-9-]{0,31}$",
+          "title": "Crew",
+          "type": "string"
+        },
+        "run_id": {
+          "format": "uuid",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "seen_tick": {
+          "anyOf": [
+            {
+              "description": "Ticks since run start",
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Seen Tick"
+        },
+        "stations": {
+          "items": {
+            "$ref": "#/$defs/StationStatus"
+          },
+          "minItems": 1,
+          "title": "Stations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "crew",
+        "run_id",
+        "stations"
+      ],
+      "title": "Heartbeat",
+      "type": "object"
+    },
+    "Incident": {
+      "additionalProperties": false,
+      "description": "An incident as the crew and the bridge see it; never the beat's act.",
+      "properties": {
+        "events": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Events",
+          "type": "array"
+        },
+        "incident_id": {
+          "description": "e.g. INC-0042",
+          "pattern": "^INC-\\d{4,}$",
+          "title": "Incident Id",
+          "type": "string"
+        },
+        "opened_at": {
+          "description": "Ticks since run start",
+          "minimum": 0,
+          "title": "Opened At",
+          "type": "integer"
+        },
+        "owner": {
+          "description": "e.g. ops",
+          "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+          "title": "Owner",
+          "type": "string"
+        },
+        "run_id": {
+          "format": "uuid",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/IncidentState"
+        },
+        "updated_at": {
+          "description": "Ticks since run start",
+          "minimum": 0,
+          "title": "Updated At",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "incident_id",
+        "run_id",
+        "state",
+        "owner",
+        "events",
+        "opened_at",
+        "updated_at"
+      ],
+      "title": "Incident",
+      "type": "object"
+    },
+    "IncidentClosed": {
+      "additionalProperties": false,
+      "description": "`incident.closed`: the Ship-judged outcome. `contained_at` is the tick the judge saw\ncontainment, if it did.",
+      "properties": {
+        "claim": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ReportClaim"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "contained_at": {
+          "anyOf": [
+            {
+              "description": "Ticks since run start",
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Contained At"
+        },
+        "filed_by": {
+          "anyOf": [
+            {
+              "description": "e.g. ops",
+              "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Filed By"
+        },
+        "incident_id": {
+          "description": "e.g. INC-0042",
+          "pattern": "^INC-\\d{4,}$",
+          "title": "Incident Id",
+          "type": "string"
+        },
+        "opened_at": {
+          "description": "Ticks since run start",
+          "minimum": 0,
+          "title": "Opened At",
+          "type": "integer"
+        },
+        "outcome": {
+          "$ref": "#/$defs/Outcome"
+        },
+        "owner": {
+          "description": "e.g. ops",
+          "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+          "title": "Owner",
+          "type": "string"
+        },
+        "run_id": {
+          "format": "uuid",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "ship_time": {
+          "description": "Ticks since run start",
+          "minimum": 0,
+          "title": "Ship Time",
+          "type": "integer"
+        },
+        "wall_time": {
+          "format": "date-time",
+          "title": "Wall Time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "incident_id",
+        "outcome",
+        "owner",
+        "opened_at",
+        "ship_time",
+        "wall_time"
+      ],
+      "title": "IncidentClosed",
+      "type": "object"
+    },
+    "IncidentState": {
+      "enum": [
+        "open",
+        "investigating",
+        "acting",
+        "awaiting_captain",
+        "closed"
+      ],
+      "title": "IncidentState",
+      "type": "string"
+    },
+    "JsonValue": {},
+    "Order": {
+      "additionalProperties": false,
+      "description": "An order request and its answer. `verdict` is empty while pending; an approved order's\n`order_id` is what an order-gated tool checks, for this incident and tool only.",
+      "properties": {
+        "args": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Args",
+          "type": "object"
+        },
+        "decided_at": {
+          "anyOf": [
+            {
+              "description": "Ticks since run start",
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Decided At"
+        },
+        "decided_by": {
+          "anyOf": [
+            {
+              "description": "captain or scripted_captain",
+              "pattern": "^(captain|scripted_captain)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Decided By"
+        },
+        "incident_id": {
+          "description": "e.g. INC-0042",
+          "pattern": "^INC-\\d{4,}$",
+          "title": "Incident Id",
+          "type": "string"
+        },
+        "order_id": {
+          "format": "uuid",
+          "title": "Order Id",
+          "type": "string"
+        },
+        "rationale": {
+          "description": "One line, 160 characters max",
+          "maxLength": 160,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "requested_at": {
+          "description": "Ticks since run start",
+          "minimum": 0,
+          "title": "Requested At",
+          "type": "integer"
+        },
+        "requested_by": {
+          "description": "e.g. ops",
+          "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+          "title": "Requested By",
+          "type": "string"
+        },
+        "run_id": {
+          "format": "uuid",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "tool": {
+          "description": "e.g. seal_section",
+          "pattern": "^[a-z][a-z_]{0,63}$",
+          "title": "Tool",
+          "type": "string"
+        },
+        "verdict": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Verdict"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "order_id",
+        "run_id",
+        "incident_id",
+        "requested_by",
+        "tool",
+        "args",
+        "rationale",
+        "requested_at"
+      ],
+      "title": "Order",
+      "type": "object"
+    },
+    "Outcome": {
+      "enum": [
+        "win",
+        "partial",
+        "fail",
+        "escalated"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    },
+    "ReportClaim": {
+      "enum": [
+        "resolved",
+        "escalated",
+        "cannot_resolve"
+      ],
+      "title": "ReportClaim",
+      "type": "string"
+    },
+    "RunStatus": {
+      "additionalProperties": false,
+      "description": "`GET /runs/{run_id}`; `outcome` is set once the run has resolved.",
+      "properties": {
+        "bridge_connected": {
+          "title": "Bridge Connected",
+          "type": "boolean"
+        },
+        "captain": {
+          "$ref": "#/$defs/Captain"
+        },
+        "episode": {
+          "description": "e.g. unlisted",
+          "pattern": "^[a-z][a-z0-9-]{0,63}$",
+          "title": "Episode",
+          "type": "string"
+        },
+        "outcome": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Outcome"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "paused": {
+          "title": "Paused",
+          "type": "boolean"
+        },
+        "run_id": {
+          "format": "uuid",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "seed": {
+          "exclusiveMaximum": 4294967296,
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "ship_time": {
+          "description": "Ticks since run start",
+          "minimum": 0,
+          "title": "Ship Time",
+          "type": "integer"
+        },
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "episode",
+        "seed",
+        "captain",
+        "ship_time",
+        "paused",
+        "bridge_connected",
+        "started_at"
+      ],
+      "title": "RunStatus",
+      "type": "object"
+    },
+    "Source": {
+      "description": "The ship system that produced a reading; the same names as the MCP servers.",
+      "enum": [
+        "sensors",
+        "manifest",
+        "bulkheads",
+        "security",
+        "sickbay",
+        "engineering",
+        "librarian",
+        "comms"
+      ],
+      "title": "Source",
+      "type": "string"
+    },
+    "StationStatus": {
+      "additionalProperties": false,
+      "description": "One station as the Stations panel shows it.",
+      "properties": {
+        "activity": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Activity"
+        },
+        "division": {
+          "$ref": "#/$defs/Division"
+        },
+        "incident_id": {
+          "anyOf": [
+            {
+              "description": "e.g. INC-0042",
+              "pattern": "^INC-\\d{4,}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Incident Id"
+        },
+        "index": {
+          "maximum": 99,
+          "minimum": 1,
+          "title": "Index",
+          "type": "integer"
+        },
+        "name": {
+          "description": "e.g. ops",
+          "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+          "title": "Name",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/AgentState"
+        }
+      },
+      "required": [
+        "name",
+        "index",
+        "division",
+        "state"
+      ],
+      "title": "StationStatus",
+      "type": "object"
+    },
+    "StreamAlert": {
+      "additionalProperties": false,
+      "properties": {
+        "condition": {
+          "$ref": "#/$defs/AlertCondition"
+        },
+        "detail": {
+          "maxLength": 80,
+          "title": "Detail",
+          "type": "string"
+        },
+        "run_id": {
+          "format": "uuid",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "type": {
+          "const": "alert",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "run_id",
+        "seq",
+        "condition",
+        "detail"
+      ],
+      "title": "StreamAlert",
+      "type": "object"
+    },
+    "StreamClock": {
+      "additionalProperties": false,
+      "properties": {
+        "paused": {
+          "title": "Paused",
+          "type": "boolean"
+        },
+        "run_id": {
+          "format": "uuid",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "ship_time": {
+          "description": "Ticks since run start",
+          "minimum": 0,
+          "title": "Ship Time",
+          "type": "integer"
+        },
+        "type": {
+          "const": "clock",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "run_id",
+        "seq",
+        "ship_time",
+        "paused"
+      ],
+      "title": "StreamClock",
+      "type": "object"
+    },
+    "StreamComms": {
+      "additionalProperties": false,
+      "properties": {
+        "message": {
+          "$ref": "#/$defs/CommsMessage"
+        },
+        "run_id": {
+          "format": "uuid",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "type": {
+          "const": "comms",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "run_id",
+        "seq",
+        "message"
+      ],
+      "title": "StreamComms",
+      "type": "object"
+    },
+    "StreamIncident": {
+      "additionalProperties": false,
+      "properties": {
+        "incident": {
+          "$ref": "#/$defs/Incident"
+        },
+        "run_id": {
+          "format": "uuid",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "type": {
+          "const": "incident",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "run_id",
+        "seq",
+        "incident"
+      ],
+      "title": "StreamIncident",
+      "type": "object"
+    },
+    "StreamOrder": {
+      "additionalProperties": false,
+      "description": "An order request or its answer; a pending order lights the Captain's Chair.",
+      "properties": {
+        "order": {
+          "$ref": "#/$defs/Order"
+        },
+        "run_id": {
+          "format": "uuid",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "type": {
+          "const": "order",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "run_id",
+        "seq",
+        "order"
+      ],
+      "title": "StreamOrder",
+      "type": "object"
+    },
+    "StreamOutcome": {
+      "additionalProperties": false,
+      "properties": {
+        "closed": {
+          "$ref": "#/$defs/IncidentClosed"
+        },
+        "run_id": {
+          "format": "uuid",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "type": {
+          "const": "outcome",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "run_id",
+        "seq",
+        "closed"
+      ],
+      "title": "StreamOutcome",
+      "type": "object"
+    },
+    "StreamSnapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "comms": {
+          "items": {
+            "$ref": "#/$defs/CommsMessage"
+          },
+          "title": "Comms",
+          "type": "array"
+        },
+        "condition": {
+          "$ref": "#/$defs/AlertCondition"
+        },
+        "heartbeat": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Heartbeat"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "incidents": {
+          "items": {
+            "$ref": "#/$defs/Incident"
+          },
+          "title": "Incidents",
+          "type": "array"
+        },
+        "orders": {
+          "items": {
+            "$ref": "#/$defs/Order"
+          },
+          "title": "Orders",
+          "type": "array"
+        },
+        "run_id": {
+          "format": "uuid",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "status": {
+          "$ref": "#/$defs/RunStatus"
+        },
+        "tools": {
+          "items": {
+            "$ref": "#/$defs/ActionEvent"
+          },
+          "title": "Tools",
+          "type": "array"
+        },
+        "type": {
+          "const": "snapshot",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "run_id",
+        "seq",
+        "status",
+        "condition",
+        "incidents",
+        "orders",
+        "comms",
+        "tools"
+      ],
+      "title": "StreamSnapshot",
+      "type": "object"
+    },
+    "StreamStations": {
+      "additionalProperties": false,
+      "properties": {
+        "heartbeat": {
+          "$ref": "#/$defs/Heartbeat"
+        },
+        "run_id": {
+          "format": "uuid",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "type": {
+          "const": "stations",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "run_id",
+        "seq",
+        "heartbeat"
+      ],
+      "title": "StreamStations",
+      "type": "object"
+    },
+    "StreamTool": {
+      "additionalProperties": false,
+      "description": "An action-stream entry, rendered as a muted `tool` line.",
+      "properties": {
+        "action": {
+          "$ref": "#/$defs/ActionEvent"
+        },
+        "run_id": {
+          "format": "uuid",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "seq": {
+          "minimum": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "type": {
+          "const": "tool",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "run_id",
+        "seq",
+        "action"
+      ],
+      "title": "StreamTool",
+      "type": "object"
+    },
+    "ToolError": {
+      "enum": [
+        "unavailable",
+        "timeout",
+        "stale",
+        "partial",
+        "requires_authorization",
+        "not_allowed"
+      ],
+      "title": "ToolError",
+      "type": "string"
+    },
+    "ToolErrorBody": {
+      "additionalProperties": false,
+      "description": "A structured tool error. `retry_after` (ticks) is present exactly when `retryable`;\n`age` (ticks) only on `stale`.",
+      "properties": {
+        "age": {
+          "anyOf": [
+            {
+              "description": "Ticks since run start",
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Age"
+        },
+        "error": {
+          "$ref": "#/$defs/ToolError"
+        },
+        "message": {
+          "maxLength": 120,
+          "title": "Message",
+          "type": "string"
+        },
+        "retry_after": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry After"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "error",
+        "message",
+        "retryable"
+      ],
+      "title": "ToolErrorBody",
+      "type": "object"
+    },
+    "ToolResult": {
+      "additionalProperties": false,
+      "description": "What an action tool returned: `data` on success, `error` otherwise. `replayed` is\ntrue when an `idempotency_key` returned the recorded result.",
+      "properties": {
+        "data": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "$ref": "#/$defs/JsonValue"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Data"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ToolErrorBody"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "replayed": {
+          "default": false,
+          "title": "Replayed",
+          "type": "boolean"
+        }
+      },
+      "title": "ToolResult",
+      "type": "object"
+    },
+    "Verdict": {
+      "description": "A captain's answer to an order request.",
+      "enum": [
+        "approve",
+        "deny"
+      ],
+      "title": "Verdict",
+      "type": "string"
+    }
+  },
+  "description": "Any message on the bridge stream, discriminated on `type`.",
+  "discriminator": {
+    "mapping": {
+      "alert": "#/$defs/StreamAlert",
+      "clock": "#/$defs/StreamClock",
+      "comms": "#/$defs/StreamComms",
+      "incident": "#/$defs/StreamIncident",
+      "order": "#/$defs/StreamOrder",
+      "outcome": "#/$defs/StreamOutcome",
+      "snapshot": "#/$defs/StreamSnapshot",
+      "stations": "#/$defs/StreamStations",
+      "tool": "#/$defs/StreamTool"
+    },
+    "propertyName": "type"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/StreamSnapshot"
+    },
+    {
+      "$ref": "#/$defs/StreamComms"
+    },
+    {
+      "$ref": "#/$defs/StreamTool"
+    },
+    {
+      "$ref": "#/$defs/StreamStations"
+    },
+    {
+      "$ref": "#/$defs/StreamIncident"
+    },
+    {
+      "$ref": "#/$defs/StreamOrder"
+    },
+    {
+      "$ref": "#/$defs/StreamClock"
+    },
+    {
+      "$ref": "#/$defs/StreamAlert"
+    },
+    {
+      "$ref": "#/$defs/StreamOutcome"
+    }
+  ],
+  "title": "StreamMessage"
+}

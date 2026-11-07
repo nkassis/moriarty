@@ -1,0 +1,130 @@
+{
+  "$defs": {
+    "CommsKind": {
+      "enum": [
+        "request",
+        "report",
+        "ack",
+        "order",
+        "escalation",
+        "system"
+      ],
+      "title": "CommsKind",
+      "type": "string"
+    },
+    "JsonValue": {}
+  },
+  "additionalProperties": false,
+  "description": "One comms line. Crews leave `ship_time` empty; the Ship stamps it before the bridge\nstream and the archive see the line.",
+  "properties": {
+    "channel": {
+      "description": "bridge, all, captain or an incident id",
+      "pattern": "^(bridge|all|captain|INC-\\d{4,})$",
+      "title": "Channel",
+      "type": "string"
+    },
+    "from": {
+      "description": "A station, `captain` or `ship`",
+      "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+      "title": "From",
+      "type": "string"
+    },
+    "in_reply_to": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "In Reply To"
+    },
+    "incident_id": {
+      "anyOf": [
+        {
+          "description": "e.g. INC-0042",
+          "pattern": "^INC-\\d{4,}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Incident Id"
+    },
+    "kind": {
+      "$ref": "#/$defs/CommsKind"
+    },
+    "message_id": {
+      "format": "uuid",
+      "title": "Message Id",
+      "type": "string"
+    },
+    "payload": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Payload",
+      "type": "object"
+    },
+    "run_id": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "ship_time": {
+      "anyOf": [
+        {
+          "description": "Ticks since run start",
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Ship Time"
+    },
+    "text": {
+      "description": "One line, 160 characters max",
+      "maxLength": 160,
+      "title": "Text",
+      "type": "string"
+    },
+    "to": {
+      "description": "A station, `bridge`, `captain` or `all`",
+      "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+      "title": "To",
+      "type": "string"
+    },
+    "traceparent": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Traceparent"
+    }
+  },
+  "required": [
+    "message_id",
+    "run_id",
+    "from",
+    "to",
+    "channel",
+    "kind",
+    "text"
+  ],
+  "title": "CommsMessage",
+  "type": "object"
+}

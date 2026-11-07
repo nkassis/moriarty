@@ -14,6 +14,9 @@ Code, schemas and the contract use plain names. Themed names are display labels 
 | Report claim | `resolved`, `escalated`, `cannot_resolve` |
 | Drive mode | `local`, `remote` |
 | Clock mode | `lockstep`, `ratio` |
+| Captain | `hitl`, `auto` |
+| Verdict | `approve`, `deny` |
+| Alert condition | `green`, `yellow`, `red` |
 | Tool error | `unavailable`, `timeout`, `stale`, `partial`, `requires_authorization`, `not_allowed` |
 | Fault kind | `unavailable`, `stale`, `transient`, `silent` |
 | Fault source | `beat`, `chaos`, `director` |
