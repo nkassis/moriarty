@@ -1,0 +1,44 @@
+name: moriarty-spike
+
+x-app: &app
+  build: .
+  image: moriarty-spike:local
+  depends_on:
+    rabbitmq:
+      condition: service_healthy
+
+x-broker-env: &broker-env
+  RABBITMQ_USER: ${RABBITMQ_USER:?set in spike/.env}
+  RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?set in spike/.env}
+  RABBITMQ_HOST: rabbitmq
+  RABBITMQ_PORT: "5672"
+
+services:
+  rabbitmq:
+    image: rabbitmq:4.3.5-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?set in spike/.env}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?set in spike/.env}
+    ports:
+      - "127.0.0.1:5673:5672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+  ship:
+    <<: *app
+    command: ["python", "-m", "spike.ship"]
+    environment:
+      <<: *broker-env
+
+  crew:
+    <<: *app
+    command: ["python", "-m", "spike.crew"]
+    environment:
+      <<: *broker-env
+      LLM_BASE_URL: ${LLM_BASE_URL:?set in spike/.env}
+      LLM_API_KEY: ${LLM_API_KEY:?set in spike/.env}
+      LLM_MODEL: ${LLM_MODEL:?set in spike/.env}
+      MCP_URL: http://ship:8000/mcp
