@@ -70,6 +70,13 @@ class Verdict(StrEnum):
     DENY = "deny"
 
 
+class Decider(StrEnum):
+    """Who answered an order request: the human captain or the scripted captain."""
+
+    CAPTAIN = "captain"
+    SCRIPTED_CAPTAIN = "scripted_captain"
+
+
 class AlertCondition(StrEnum):
     GREEN = "green"
     YELLOW = "yellow"
@@ -128,6 +135,7 @@ CONTRACT_ENUMS: tuple[type[StrEnum], ...] = (
     ClockMode,
     Captain,
     Verdict,
+    Decider,
     AlertCondition,
     ToolError,
     FaultKind,

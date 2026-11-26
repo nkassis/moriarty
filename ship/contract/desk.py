@@ -3,18 +3,14 @@
 from typing import Annotated, Self
 from uuid import UUID
 
-from pydantic import AwareDatetime, Field, JsonValue, model_validator
+from pydantic import AwareDatetime, ConfigDict, Field, JsonValue, model_validator
 
-from ship.contract.enums import IncidentState, Outcome, ReportClaim, Verdict
+from ship.contract.enums import Decider, IncidentState, Outcome, ReportClaim, Verdict
 from ship.contract.ids import IncidentId, Rationale, StationName, ToolName
 from ship.contract.models import ContractModel, ShipTime
 
 INCIDENT_CLOSED_ROUTING_KEY = "incident.closed"
 INCIDENT_UPDATED_ROUTING_KEY = "incident.updated"
-
-Decider = Annotated[
-    str, Field(pattern=r"^(captain|scripted_captain)$", description="captain or scripted_captain")
-]
 
 
 class Incident(ContractModel):
@@ -24,7 +20,10 @@ class Incident(ContractModel):
     run_id: UUID
     state: IncidentState
     owner: StationName
-    events: list[UUID]
+    events: Annotated[
+        list[UUID],
+        Field(description="Attached event ids. M2: a count, with the ids on a paged endpoint."),
+    ]
     opened_at: ShipTime
     updated_at: ShipTime
 
@@ -32,6 +31,22 @@ class Incident(ContractModel):
 class Order(ContractModel):
     """An order request and its answer. `verdict` is empty while pending; an approved order's
     `order_id` is what an order-gated tool checks, for this incident and tool only."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "if": {"properties": {"verdict": {"type": "string"}}, "required": ["verdict"]},
+            "then": {
+                "required": ["decided_by", "decided_at"],
+                "properties": {
+                    "decided_by": {"type": "string"},
+                    "decided_at": {"type": "integer"},
+                },
+            },
+            "else": {
+                "properties": {"decided_by": {"type": "null"}, "decided_at": {"type": "null"}}
+            },
+        }
+    )
 
     order_id: UUID
     run_id: UUID

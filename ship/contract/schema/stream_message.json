@@ -51,7 +51,22 @@
           "title": "Order Id"
         },
         "result": {
-          "$ref": "#/$defs/ToolResult"
+          "discriminator": {
+            "mapping": {
+              "error": "#/$defs/ToolFailure",
+              "ok": "#/$defs/ToolSuccess"
+            },
+            "propertyName": "status"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ToolSuccess"
+            },
+            {
+              "$ref": "#/$defs/ToolFailure"
+            }
+          ],
+          "title": "Result"
         },
         "run_id": {
           "format": "uuid",
@@ -119,6 +134,26 @@
       "title": "AlertCondition",
       "type": "string"
     },
+    "AlertState": {
+      "additionalProperties": false,
+      "description": "The ship's alert condition and its reason, as the AlertBanner shows it.",
+      "properties": {
+        "condition": {
+          "$ref": "#/$defs/AlertCondition"
+        },
+        "detail": {
+          "maxLength": 80,
+          "title": "Detail",
+          "type": "string"
+        }
+      },
+      "required": [
+        "condition",
+        "detail"
+      ],
+      "title": "AlertState",
+      "type": "object"
+    },
     "Captain": {
       "description": "Who sits in the chair (decisions-m1 8).",
       "enum": [
@@ -142,7 +177,49 @@
     },
     "CommsMessage": {
       "additionalProperties": false,
-      "description": "One comms line. Crews leave `ship_time` empty; the Ship stamps it before the bridge\nstream and the archive see the line.",
+      "allOf": [
+        {
+          "if": {
+            "not": {
+              "properties": {
+                "channel": {
+                  "const": "all"
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "incident_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "incident_id"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ack"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "in_reply_to": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "in_reply_to"
+            ]
+          }
+        }
+      ],
+      "description": "One comms line. Crews leave `ship_time` empty; the Ship stamps it before the bridge\nstream and the archive see the line. `traceparent` is in the body as well as the AMQP\nheaders on purpose (AGENTS.md): the bridge and the archive keep the line, not the headers.\n\nThe schema states every reference rule except that an incident channel matches\n`incident_id`, which JSON Schema cannot compare.",
       "properties": {
         "channel": {
           "description": "bridge, all, captain or an incident id",
@@ -255,6 +332,15 @@
       "title": "CommsMessage",
       "type": "object"
     },
+    "Decider": {
+      "description": "Who answered an order request: the human captain or the scripted captain.",
+      "enum": [
+        "captain",
+        "scripted_captain"
+      ],
+      "title": "Decider",
+      "type": "string"
+    },
     "Division": {
       "enum": [
         "command",
@@ -315,6 +401,7 @@
       "description": "An incident as the crew and the bridge see it; never the beat's act.",
       "properties": {
         "events": {
+          "description": "Attached event ids. M2: a count, with the ids on a paged endpoint.",
           "items": {
             "format": "uuid",
             "type": "string"
@@ -475,6 +562,26 @@
     "Order": {
       "additionalProperties": false,
       "description": "An order request and its answer. `verdict` is empty while pending; an approved order's\n`order_id` is what an order-gated tool checks, for this incident and tool only.",
+      "else": {
+        "properties": {
+          "decided_at": {
+            "type": "null"
+          },
+          "decided_by": {
+            "type": "null"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "verdict": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "verdict"
+        ]
+      },
       "properties": {
         "args": {
           "additionalProperties": {
@@ -500,16 +607,13 @@
         "decided_by": {
           "anyOf": [
             {
-              "description": "captain or scripted_captain",
-              "pattern": "^(captain|scripted_captain)$",
-              "type": "string"
+              "$ref": "#/$defs/Decider"
             },
             {
               "type": "null"
             }
           ],
-          "default": null,
-          "title": "Decided By"
+          "default": null
         },
         "incident_id": {
           "description": "e.g. INC-0042",
@@ -573,6 +677,20 @@
         "rationale",
         "requested_at"
       ],
+      "then": {
+        "properties": {
+          "decided_at": {
+            "type": "integer"
+          },
+          "decided_by": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "decided_by",
+          "decided_at"
+        ]
+      },
       "title": "Order",
       "type": "object"
     },
@@ -740,13 +858,8 @@
     "StreamAlert": {
       "additionalProperties": false,
       "properties": {
-        "condition": {
-          "$ref": "#/$defs/AlertCondition"
-        },
-        "detail": {
-          "maxLength": 80,
-          "title": "Detail",
-          "type": "string"
+        "alert": {
+          "$ref": "#/$defs/AlertState"
         },
         "run_id": {
           "format": "uuid",
@@ -768,8 +881,7 @@
         "type",
         "run_id",
         "seq",
-        "condition",
-        "detail"
+        "alert"
       ],
       "title": "StreamAlert",
       "type": "object"
@@ -940,16 +1052,24 @@
     },
     "StreamSnapshot": {
       "additionalProperties": false,
+      "description": "The run's current state. `alert` and `closed` are the same records the `alert` and\n`outcome` deltas carried, so a client that connects late draws the same banners.",
       "properties": {
+        "alert": {
+          "$ref": "#/$defs/AlertState"
+        },
+        "closed": {
+          "items": {
+            "$ref": "#/$defs/IncidentClosed"
+          },
+          "title": "Closed",
+          "type": "array"
+        },
         "comms": {
           "items": {
             "$ref": "#/$defs/CommsMessage"
           },
           "title": "Comms",
           "type": "array"
-        },
-        "condition": {
-          "$ref": "#/$defs/AlertCondition"
         },
         "heartbeat": {
           "anyOf": [
@@ -1007,9 +1127,10 @@
         "run_id",
         "seq",
         "status",
-        "condition",
+        "alert",
         "incidents",
         "orders",
+        "closed",
         "comms",
         "tools"
       ],
@@ -1093,7 +1214,53 @@
     },
     "ToolErrorBody": {
       "additionalProperties": false,
-      "description": "A structured tool error. `retry_after` (ticks) is present exactly when `retryable`;\n`age` (ticks) only on `stale`.",
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "retry_after": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "retryable": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "retry_after": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "retry_after"
+            ]
+          }
+        },
+        {
+          "if": {
+            "not": {
+              "properties": {
+                "error": {
+                  "const": "stale"
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "age": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "description": "A structured tool error. `retry_after` (ticks) is present exactly when `retryable`;\n`age` (ticks) only on `stale`. The validator and the schema's `allOf` state the same rules,\nso schema validators agree with Python.",
       "properties": {
         "age": {
           "anyOf": [
@@ -1143,43 +1310,58 @@
       "title": "ToolErrorBody",
       "type": "object"
     },
-    "ToolResult": {
+    "ToolFailure": {
       "additionalProperties": false,
-      "description": "What an action tool returned: `data` on success, `error` otherwise. `replayed` is\ntrue when an `idempotency_key` returned the recorded result.",
+      "description": "An action tool's structured error; `replayed` as on `ToolSuccess`.",
       "properties": {
-        "data": {
-          "anyOf": [
-            {
-              "additionalProperties": {
-                "$ref": "#/$defs/JsonValue"
-              },
-              "type": "object"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Data"
-        },
         "error": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/ToolErrorBody"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
+          "$ref": "#/$defs/ToolErrorBody"
         },
         "replayed": {
           "default": false,
           "title": "Replayed",
           "type": "boolean"
+        },
+        "status": {
+          "const": "error",
+          "title": "Status",
+          "type": "string"
         }
       },
-      "title": "ToolResult",
+      "required": [
+        "status",
+        "error"
+      ],
+      "title": "ToolFailure",
+      "type": "object"
+    },
+    "ToolSuccess": {
+      "additionalProperties": false,
+      "description": "An action tool's data. `replayed` is true when an `idempotency_key` returned the\nrecorded result.",
+      "properties": {
+        "data": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Data",
+          "type": "object"
+        },
+        "replayed": {
+          "default": false,
+          "title": "Replayed",
+          "type": "boolean"
+        },
+        "status": {
+          "const": "ok",
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "data"
+      ],
+      "title": "ToolSuccess",
       "type": "object"
     },
     "Verdict": {

@@ -15,7 +15,53 @@
     },
     "ToolErrorBody": {
       "additionalProperties": false,
-      "description": "A structured tool error. `retry_after` (ticks) is present exactly when `retryable`;\n`age` (ticks) only on `stale`.",
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "retry_after": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "retryable": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "retry_after": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "retry_after"
+            ]
+          }
+        },
+        {
+          "if": {
+            "not": {
+              "properties": {
+                "error": {
+                  "const": "stale"
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "age": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "description": "A structured tool error. `retry_after` (ticks) is present exactly when `retryable`;\n`age` (ticks) only on `stale`. The validator and the schema's `allOf` state the same rules,\nso schema validators agree with Python.",
       "properties": {
         "age": {
           "anyOf": [
@@ -64,43 +110,77 @@
       ],
       "title": "ToolErrorBody",
       "type": "object"
-    }
-  },
-  "additionalProperties": false,
-  "description": "What an action tool returned: `data` on success, `error` otherwise. `replayed` is\ntrue when an `idempotency_key` returned the recorded result.",
-  "properties": {
-    "data": {
-      "anyOf": [
-        {
+    },
+    "ToolFailure": {
+      "additionalProperties": false,
+      "description": "An action tool's structured error; `replayed` as on `ToolSuccess`.",
+      "properties": {
+        "error": {
+          "$ref": "#/$defs/ToolErrorBody"
+        },
+        "replayed": {
+          "default": false,
+          "title": "Replayed",
+          "type": "boolean"
+        },
+        "status": {
+          "const": "error",
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "error"
+      ],
+      "title": "ToolFailure",
+      "type": "object"
+    },
+    "ToolSuccess": {
+      "additionalProperties": false,
+      "description": "An action tool's data. `replayed` is true when an `idempotency_key` returned the\nrecorded result.",
+      "properties": {
+        "data": {
           "additionalProperties": {
             "$ref": "#/$defs/JsonValue"
           },
+          "title": "Data",
           "type": "object"
         },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Data"
-    },
-    "error": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/ToolErrorBody"
+        "replayed": {
+          "default": false,
+          "title": "Replayed",
+          "type": "boolean"
         },
-        {
-          "type": "null"
+        "status": {
+          "const": "ok",
+          "title": "Status",
+          "type": "string"
         }
+      },
+      "required": [
+        "status",
+        "data"
       ],
-      "default": null
-    },
-    "replayed": {
-      "default": false,
-      "title": "Replayed",
-      "type": "boolean"
+      "title": "ToolSuccess",
+      "type": "object"
     }
   },
-  "title": "ToolResult",
-  "type": "object"
+  "description": "What an action tool returned, discriminated on `status`.",
+  "discriminator": {
+    "mapping": {
+      "error": "#/$defs/ToolFailure",
+      "ok": "#/$defs/ToolSuccess"
+    },
+    "propertyName": "status"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/ToolSuccess"
+    },
+    {
+      "$ref": "#/$defs/ToolFailure"
+    }
+  ],
+  "title": "ToolResult"
 }

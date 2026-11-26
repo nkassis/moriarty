@@ -21,15 +21,26 @@ from ship.contract.runs import RunStatus
 Seq = Annotated[int, Field(ge=0)]
 
 
+class AlertState(ContractModel):
+    """The ship's alert condition and its reason, as the AlertBanner shows it."""
+
+    condition: AlertCondition
+    detail: Annotated[str, Field(max_length=80)]
+
+
 class StreamSnapshot(ContractModel):
+    """The run's current state. `alert` and `closed` are the same records the `alert` and
+    `outcome` deltas carried, so a client that connects late draws the same banners."""
+
     type: Literal["snapshot"]
     run_id: UUID
     seq: Seq
     status: RunStatus
-    condition: AlertCondition
+    alert: AlertState
     heartbeat: Heartbeat | None = None
     incidents: list[Incident]
     orders: list[Order]
+    closed: list[IncidentClosed]
     comms: list[CommsMessage]
     tools: list[ActionEvent]
 
@@ -85,8 +96,7 @@ class StreamAlert(ContractModel):
     type: Literal["alert"]
     run_id: UUID
     seq: Seq
-    condition: AlertCondition
-    detail: Annotated[str, Field(max_length=80)]
+    alert: AlertState
 
 
 class StreamOutcome(ContractModel):

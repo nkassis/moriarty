@@ -15,7 +15,49 @@
     "JsonValue": {}
   },
   "additionalProperties": false,
-  "description": "One comms line. Crews leave `ship_time` empty; the Ship stamps it before the bridge\nstream and the archive see the line.",
+  "allOf": [
+    {
+      "if": {
+        "not": {
+          "properties": {
+            "channel": {
+              "const": "all"
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "incident_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "incident_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ack"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "in_reply_to": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "in_reply_to"
+        ]
+      }
+    }
+  ],
+  "description": "One comms line. Crews leave `ship_time` empty; the Ship stamps it before the bridge\nstream and the archive see the line. `traceparent` is in the body as well as the AMQP\nheaders on purpose (AGENTS.md): the bridge and the archive keep the line, not the headers.\n\nThe schema states every reference rule except that an incident channel matches\n`incident_id`, which JSON Schema cannot compare.",
   "properties": {
     "channel": {
       "description": "bridge, all, captain or an incident id",

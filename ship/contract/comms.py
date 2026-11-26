@@ -31,10 +31,35 @@ COMMS_ROUTING_KEY = "comms.{channel}.{kind}"
 
 class CommsMessage(ContractModel):
     """One comms line. Crews leave `ship_time` empty; the Ship stamps it before the bridge
-    stream and the archive see the line."""
+    stream and the archive see the line. `traceparent` is in the body as well as the AMQP
+    headers on purpose (AGENTS.md): the bridge and the archive keep the line, not the headers.
+
+    The schema states every reference rule except that an incident channel matches
+    `incident_id`, which JSON Schema cannot compare."""
 
     model_config = ConfigDict(
-        extra="forbid", frozen=True, validate_by_name=True, serialize_by_alias=True
+        extra="forbid",
+        frozen=True,
+        validate_by_name=True,
+        serialize_by_alias=True,
+        json_schema_extra={
+            "allOf": [
+                {
+                    "if": {"not": {"properties": {"channel": {"const": "all"}}}},
+                    "then": {
+                        "required": ["incident_id"],
+                        "properties": {"incident_id": {"type": "string"}},
+                    },
+                },
+                {
+                    "if": {"properties": {"kind": {"const": CommsKind.ACK.value}}},
+                    "then": {
+                        "required": ["in_reply_to"],
+                        "properties": {"in_reply_to": {"type": "string"}},
+                    },
+                },
+            ]
+        },
     )
 
     message_id: UUID

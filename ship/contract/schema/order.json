@@ -1,5 +1,14 @@
 {
   "$defs": {
+    "Decider": {
+      "description": "Who answered an order request: the human captain or the scripted captain.",
+      "enum": [
+        "captain",
+        "scripted_captain"
+      ],
+      "title": "Decider",
+      "type": "string"
+    },
     "JsonValue": {},
     "Verdict": {
       "description": "A captain's answer to an order request.",
@@ -13,6 +22,26 @@
   },
   "additionalProperties": false,
   "description": "An order request and its answer. `verdict` is empty while pending; an approved order's\n`order_id` is what an order-gated tool checks, for this incident and tool only.",
+  "else": {
+    "properties": {
+      "decided_at": {
+        "type": "null"
+      },
+      "decided_by": {
+        "type": "null"
+      }
+    }
+  },
+  "if": {
+    "properties": {
+      "verdict": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "verdict"
+    ]
+  },
   "properties": {
     "args": {
       "additionalProperties": {
@@ -38,16 +67,13 @@
     "decided_by": {
       "anyOf": [
         {
-          "description": "captain or scripted_captain",
-          "pattern": "^(captain|scripted_captain)$",
-          "type": "string"
+          "$ref": "#/$defs/Decider"
         },
         {
           "type": "null"
         }
       ],
-      "default": null,
-      "title": "Decided By"
+      "default": null
     },
     "incident_id": {
       "description": "e.g. INC-0042",
@@ -111,6 +137,20 @@
     "rationale",
     "requested_at"
   ],
+  "then": {
+    "properties": {
+      "decided_at": {
+        "type": "integer"
+      },
+      "decided_by": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "decided_by",
+      "decided_at"
+    ]
+  },
   "title": "Order",
   "type": "object"
 }

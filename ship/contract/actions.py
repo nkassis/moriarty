@@ -1,9 +1,9 @@
 """Tool results, structured tool errors and the internal action stream."""
 
-from typing import Annotated, Self
+from typing import Annotated, Literal, Self
 from uuid import UUID
 
-from pydantic import AwareDatetime, Field, JsonValue, model_validator
+from pydantic import AwareDatetime, ConfigDict, Field, JsonValue, RootModel, model_validator
 
 from ship.contract.enums import Source, ToolError
 from ship.contract.ids import IdempotencyKey, IncidentId, StationName, ToolName
@@ -14,7 +14,27 @@ ACTION_ROUTING_KEY = "action.{system}.{tool}"
 
 class ToolErrorBody(ContractModel):
     """A structured tool error. `retry_after` (ticks) is present exactly when `retryable`;
-    `age` (ticks) only on `stale`."""
+    `age` (ticks) only on `stale`. The validator and the schema's `allOf` state the same rules,
+    so schema validators agree with Python."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "allOf": [
+                {
+                    "if": {"properties": {"retryable": {"const": True}}},
+                    "then": {
+                        "required": ["retry_after"],
+                        "properties": {"retry_after": {"type": "integer"}},
+                    },
+                    "else": {"properties": {"retry_after": {"type": "null"}}},
+                },
+                {
+                    "if": {"not": {"properties": {"error": {"const": ToolError.STALE.value}}}},
+                    "then": {"properties": {"age": {"type": "null"}}},
+                },
+            ]
+        }
+    )
 
     error: ToolError
     message: Annotated[str, Field(max_length=120)]
@@ -31,19 +51,28 @@ class ToolErrorBody(ContractModel):
         return self
 
 
-class ToolResult(ContractModel):
-    """What an action tool returned: `data` on success, `error` otherwise. `replayed` is
-    true when an `idempotency_key` returned the recorded result."""
+class ToolSuccess(ContractModel):
+    """An action tool's data. `replayed` is true when an `idempotency_key` returned the
+    recorded result."""
 
-    data: dict[str, JsonValue] | None = None
-    error: ToolErrorBody | None = None
+    status: Literal["ok"]
+    data: dict[str, JsonValue]
     replayed: bool = False
 
-    @model_validator(mode="after")
-    def _one_of(self) -> Self:
-        if (self.data is None) == (self.error is None):
-            raise ValueError("exactly one of data and error")
-        return self
+
+class ToolFailure(ContractModel):
+    """An action tool's structured error; `replayed` as on `ToolSuccess`."""
+
+    status: Literal["error"]
+    error: ToolErrorBody
+    replayed: bool = False
+
+
+ToolOutcome = Annotated[ToolSuccess | ToolFailure, Field(discriminator="status")]
+
+
+class ToolResult(RootModel[ToolOutcome]):
+    """What an action tool returned, discriminated on `status`."""
 
 
 class ActionEvent(ContractModel):
@@ -59,7 +88,7 @@ class ActionEvent(ContractModel):
     args: dict[str, JsonValue]
     idempotency_key: IdempotencyKey
     order_id: UUID | None = None
-    result: ToolResult
+    result: ToolOutcome
     ship_time: ShipTime
     wall_time: AwareDatetime
 

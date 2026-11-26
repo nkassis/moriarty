@@ -3,7 +3,7 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
-from ship.contract.actions import ActionEvent, ToolErrorBody, ToolResult
+from ship.contract.actions import ActionEvent, ToolErrorBody, ToolFailure, ToolOutcome, ToolSuccess
 from ship.contract.comms import CommsMessage
 from ship.contract.crew import Heartbeat, StationStatus
 from ship.contract.desk import Incident, IncidentClosed, Order, Report
@@ -12,6 +12,7 @@ from ship.contract.enums import (
     Captain,
     ClockMode,
     CommsKind,
+    Decider,
     Division,
     DriveMode,
     IncidentState,
@@ -74,7 +75,7 @@ def heartbeat() -> Heartbeat:
     )
 
 
-def action(result: ToolResult | None = None) -> ActionEvent:
+def action(result: ToolOutcome | None = None) -> ActionEvent:
     return ActionEvent(
         action_id=UUID("6f1c2a5e-0000-4000-8000-000000000020"),
         run_id=RUN_ID,
@@ -84,7 +85,7 @@ def action(result: ToolResult | None = None) -> ActionEvent:
         incident_id="INC-0042",
         args={"deck": 7, "section": "12"},
         idempotency_key=f"{EVENT_ID}:2",
-        result=result or ToolResult(data={"sealed": True}),
+        result=result or ToolSuccess(status="ok", data={"sealed": True}),
         ship_time=14,
         wall_time=WALL,
     )
@@ -94,6 +95,10 @@ def tool_error() -> ToolErrorBody:
     return ToolErrorBody(
         error=ToolError.TIMEOUT, message="sensors timed out", retryable=True, retry_after=2
     )
+
+
+def tool_failure() -> ToolFailure:
+    return ToolFailure(status="error", error=tool_error())
 
 
 def incident() -> Incident:
@@ -185,4 +190,4 @@ def run_status() -> RunStatus:
     )
 
 
-APPROVED = {"verdict": Verdict.APPROVE, "decided_by": "captain", "decided_at": 18}
+APPROVED = {"verdict": Verdict.APPROVE, "decided_by": Decider.CAPTAIN, "decided_at": 18}

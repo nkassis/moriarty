@@ -3,7 +3,7 @@
 from typing import Annotated, Literal, Self
 from uuid import UUID
 
-from pydantic import AwareDatetime, Field, model_validator
+from pydantic import AwareDatetime, ConfigDict, Field, model_validator
 
 from ship.contract.enums import Captain, ClockMode, DriveMode, Outcome, Verdict
 from ship.contract.ids import IncidentId, StationName, ToolName
@@ -22,6 +22,14 @@ Alias = Annotated[str, Field(pattern=r"^[a-z][a-z0-9_-]{0,31}$", description="e.
 class CaptainPolicy(ContractModel):
     """The scripted captain's script (decisions-m1 8). `approve_after` counts world ticks;
     `only` limits approval to the listed tools and denies the rest."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "if": {"properties": {"default": {"const": "approve_after"}}},
+            "then": {"required": ["ticks"], "properties": {"ticks": {"type": "integer"}}},
+            "else": {"properties": {"ticks": {"type": "null"}}},
+        }
+    )
 
     default: Literal["approve", "deny", "approve_after"]
     ticks: Annotated[int, Field(ge=1)] | None = None
@@ -73,7 +81,9 @@ class RunConfig(ContractModel):
     captain: Captain
     captain_policy: CaptainPolicy | None = None
     seed: Seed | None = None
-    models: dict[Alias, ProviderRoute]
+    models: Annotated[
+        dict[Alias, ProviderRoute], Field(json_schema_extra={"required": ["triage", "summary"]})
+    ]
     budget: Budget
 
     @model_validator(mode="after")

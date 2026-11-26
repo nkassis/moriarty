@@ -34,6 +34,20 @@
     "CaptainPolicy": {
       "additionalProperties": false,
       "description": "The scripted captain's script (decisions-m1 8). `approve_after` counts world ticks;\n`only` limits approval to the listed tools and denies the rest.",
+      "else": {
+        "properties": {
+          "ticks": {
+            "type": "null"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "default": {
+            "const": "approve_after"
+          }
+        }
+      },
       "properties": {
         "default": {
           "enum": [
@@ -78,6 +92,16 @@
       "required": [
         "default"
       ],
+      "then": {
+        "properties": {
+          "ticks": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ticks"
+        ]
+      },
       "title": "CaptainPolicy",
       "type": "object"
     },
@@ -219,6 +243,10 @@
           "propertyNames": {
             "description": "e.g. triage"
           },
+          "required": [
+            "triage",
+            "summary"
+          ],
           "title": "Models",
           "type": "object"
         },

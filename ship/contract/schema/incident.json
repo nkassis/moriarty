@@ -16,6 +16,7 @@
   "description": "An incident as the crew and the bridge see it; never the beat's act.",
   "properties": {
     "events": {
+      "description": "Attached event ids. M2: a count, with the ids on a paged endpoint.",
       "items": {
         "format": "uuid",
         "type": "string"
