@@ -16,6 +16,7 @@ Code, schemas and the contract use plain names. Themed names are display labels 
 | Clock mode | `lockstep`, `ratio` |
 | Captain | `hitl`, `auto` |
 | Verdict | `approve`, `deny` |
+| Decider | `captain`, `scripted_captain` |
 | Alert condition | `green`, `yellow`, `red` |
 | Tool error | `unavailable`, `timeout`, `stale`, `partial`, `requires_authorization`, `not_allowed` |
 | Fault kind | `unavailable`, `stale`, `transient`, `silent` |

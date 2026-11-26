@@ -170,7 +170,7 @@ FastAPI, OpenAPI at `/docs`. Request and response bodies are contract models (`s
 | `POST /runs/{run_id}/orders/{order_id}/decision` | `OrderDecision` (`approve` or `deny`) | `Order` |
 | `WS /runs/{run_id}/stream` | | `StreamMessage`, one per frame |
 
-The stream opens with a `snapshot` of the run's current state (status, alert condition, heartbeat, incidents, orders, recent comms and tool lines), then sends one message per change: `comms`, `tool`, `stations`, `incident`, `order`, `clock`, `alert`, `outcome`. `seq` rises by one per message on a connection; a client that sees a gap reconnects and resyncs from the next snapshot. A connected stream is what "a bridge is connected to the run" means in decisions-m1 8.
+The stream opens with a `snapshot` of the run's current state (status, alert condition and detail, heartbeat, incidents, orders, judged closes, recent comms and tool lines), then sends one message per change: `comms`, `tool`, `stations`, `incident`, `order`, `clock`, `alert`, `outcome`. `seq` rises by one per message on a connection; a client that sees a gap reconnects and resyncs from the next snapshot. The snapshot's `alert` and `closed` are the records the `alert` and `outcome` messages carried, so a client that connects late draws the same alert and outcome banners. A connected stream is what "a bridge is connected to the run" means in decisions-m1 8.
 
 ## Holodeck and episodes
 
@@ -734,6 +734,8 @@ If M2+ scope must be cut, the order is: Kubernetes, live Medical and Engineering
 - [x] **Heartbeat `seen_tick`, M1.** The heartbeat carries the latest `ship_time` the crew observed, from events; lockstep with a crew that sees no events between ticks is M2+ work.
 - [x] **Budget location, M1.** The token budget (`incident_tokens`, `run_tokens`) sits in `RunConfig` for v0.1. It changes outcomes through the 402, so it moves to the episode header when the harness compares runs (M2+).
 - [x] **Stream transport, M1.** One WebSocket per run; a snapshot on connect and `seq` per message, so resync is reconnect-and-replace.
+- [x] **Incident events, M1.** `Incident.events` lists every attached event id; M2 replaces it with a count and a paged endpoint, before long runs make the stream's incident messages grow.
+- [x] **Comms `traceparent`, M1.** The envelope carries `traceparent` in the body as well as the AMQP headers, because the bridge stream and the archive keep the line and drop the headers.
 - [x] **Version freshness, M0.** `exclude-newer` in the root `pyproject.toml` keeps Python packages out of the two weeks before the pin; Python is 3.14 (3.15.0 was inside that window at kickoff); compose image tags follow the same rule. Pre-commit hooks run the locked ruff and black through `uv run`, so there is one version source.
 
 ## Vocabulary
@@ -754,6 +756,7 @@ One rule keeps this from getting cute: **code, schemas and the contract use plai
 | Clock mode | `lockstep`, `ratio` |
 | Captain | `hitl`, `auto` |
 | Verdict | `approve`, `deny` |
+| Decider | `captain`, `scripted_captain` |
 | Alert condition | `green`, `yellow`, `red` |
 | Tool error | `unavailable`, `timeout`, `stale`, `partial`, `requires_authorization`, `not_allowed` |
 | Fault kind | `unavailable`, `stale`, `transient`, `silent` |

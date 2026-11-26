@@ -82,7 +82,7 @@ Entries are held to the bar in `.claude/rules/decision-log.md`: a competent engi
 
 ### 8. The scripted captain counts world ticks; a human in `hitl` has no timeout
 
-**Why:** The clock pauses while `awaiting_captain`, so a wall-clock-free `approve_after N` never elapses. The profile's `captain` (`hitl` | `auto`) says who sits in the chair; the episode's `captain_policy` is the scripted captain's script. In `auto` the scripted captain answers at the next tick boundary, counting N in world ticks. In `hitl` the human answers; the script answers only when no bridge is connected to the run.
+**Why:** The clock pauses while `awaiting_captain`, so a wall-clock-free `approve_after N` never elapses. The profile's `captain` (`hitl` | `auto`) says who sits in the chair; `captain_policy` is the scripted captain's script, set in the episode header; a profile may override it. In `auto` the scripted captain answers at the next tick boundary, counting N in world ticks. In `hitl` the human answers; the script answers only when no bridge is connected to the run. The order's `decided_by` records which captain answered.
 
 **Instead of:** counting N × `tick_seconds` of wall time while paused, which gives the captain 20 s on camera and makes unattended evals wait real seconds.
 
