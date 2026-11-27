@@ -25,7 +25,7 @@ package = false
 exclude-newer = "2026-10-03T00:00:00Z"
 
 [tool.uv.workspace]
-members = ["holodeck", "ship"]
+members = ["cli", "holodeck", "ship"]
 
 [tool.ruff]
 line-length = 100
@@ -39,7 +39,7 @@ select = ["E", "F", "W", "I", "B", "UP", "ANN", "ASYNC", "RUF"]
 "**/test_*.py" = ["ANN401"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["holodeck", "ship"]
+known-first-party = ["holodeck", "moriarty_cli", "ship"]
 
 [tool.black]
 line-length = 100
@@ -47,7 +47,7 @@ target-version = ["py314"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
-testpaths = ["tests", "holodeck", "ship"]
+testpaths = ["tests", "cli", "holodeck", "ship"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
 markers = ["integration: needs Docker (testcontainers for RabbitMQ or Postgres)"]

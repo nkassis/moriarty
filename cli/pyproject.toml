@@ -1,0 +1,21 @@
+[project]
+name = "moriarty-cli"
+version = "0.0.0"
+description = "The moriarty command: stack lifecycle, doctor, schema."
+license = "MIT"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "typer>=0.27.2",
+]
+
+[project.scripts]
+moriarty = "moriarty_cli.main:app"
+
+[build-system]
+requires = ["uv_build>=0.8,<0.14"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+# The package sits at cli/moriarty_cli, not under src/.
+module-name = "moriarty_cli"
+module-root = ""
