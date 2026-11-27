@@ -10,7 +10,7 @@ Stack and developer tooling, for every coding agent. Commands run from the repo 
 - Messaging: RabbitMQ, topic exchange `subspace`, per-crew users with topic permissions, quorum queues, dead-letter queue `lost-hail`.
 - Storage: Postgres with pgvector; schemas `world` and `ship`. Redis only inside crews that want it.
 - Observability: OpenTelemetry from M0. `traceparent` rides in AMQP headers and the comms envelope.
-- Models: all calls go through the gateway (`ship/gateway`, FastAPI in front of LiteLLM). Crews never hold provider keys. Ollama is reached via its native chat API.
+- Models: all calls go through the gateway (`ship/gateway`, FastAPI forwarding OpenAI chat completions with httpx; no provider SDK, decisions-m1 9). Crews never hold provider keys. Ollama is reached at its OpenAI-compatible `/v1` endpoint.
 - Local: Docker Compose with profiles per crew and drive mode. Kubernetes is a later, separate track.
 
 ## Setup

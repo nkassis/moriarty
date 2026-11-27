@@ -1,0 +1,25 @@
+{
+  "$defs": {
+    "Verdict": {
+      "description": "A captain's answer to an order request.",
+      "enum": [
+        "approve",
+        "deny"
+      ],
+      "title": "Verdict",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "`POST /runs/{run_id}/orders/{order_id}/decision`: the captain's answer.",
+  "properties": {
+    "verdict": {
+      "$ref": "#/$defs/Verdict"
+    }
+  },
+  "required": [
+    "verdict"
+  ],
+  "title": "OrderDecision",
+  "type": "object"
+}

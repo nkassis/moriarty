@@ -93,12 +93,15 @@ def test_parse_reading_validates_observed() -> None:
 
 
 def test_schema_filenames() -> None:
-    assert [schema_filename(model) for model in MODELS] == [
+    names = [schema_filename(model) for model in MODELS]
+    assert names[:4] == [
         "clock_tick.json",
         "event.json",
         "lifeform_mismatch.json",
         "raw_observation.json",
     ]
+    assert {"comms_message.json", "run_config.json", "stream_message.json"} <= set(names)
+    assert len(names) == len(set(names))
 
 
 def test_rendered_schema_is_stable() -> None:

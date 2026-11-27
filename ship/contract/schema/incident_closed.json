@@ -1,0 +1,114 @@
+{
+  "$defs": {
+    "Outcome": {
+      "enum": [
+        "win",
+        "partial",
+        "fail",
+        "escalated"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    },
+    "ReportClaim": {
+      "enum": [
+        "resolved",
+        "escalated",
+        "cannot_resolve"
+      ],
+      "title": "ReportClaim",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "`incident.closed`: the Ship-judged outcome. `contained_at` is the tick the judge saw\ncontainment, if it did.",
+  "properties": {
+    "claim": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ReportClaim"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "contained_at": {
+      "anyOf": [
+        {
+          "description": "Ticks since run start",
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Contained At"
+    },
+    "filed_by": {
+      "anyOf": [
+        {
+          "description": "e.g. ops",
+          "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Filed By"
+    },
+    "incident_id": {
+      "description": "e.g. INC-0042",
+      "pattern": "^INC-\\d{4,}$",
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "opened_at": {
+      "description": "Ticks since run start",
+      "minimum": 0,
+      "title": "Opened At",
+      "type": "integer"
+    },
+    "outcome": {
+      "$ref": "#/$defs/Outcome"
+    },
+    "owner": {
+      "description": "e.g. ops",
+      "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+      "title": "Owner",
+      "type": "string"
+    },
+    "run_id": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "ship_time": {
+      "description": "Ticks since run start",
+      "minimum": 0,
+      "title": "Ship Time",
+      "type": "integer"
+    },
+    "wall_time": {
+      "format": "date-time",
+      "title": "Wall Time",
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "incident_id",
+    "outcome",
+    "owner",
+    "opened_at",
+    "ship_time",
+    "wall_time"
+  ],
+  "title": "IncidentClosed",
+  "type": "object"
+}

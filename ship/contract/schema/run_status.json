@@ -1,0 +1,89 @@
+{
+  "$defs": {
+    "Captain": {
+      "description": "Who sits in the chair (decisions-m1 8).",
+      "enum": [
+        "hitl",
+        "auto"
+      ],
+      "title": "Captain",
+      "type": "string"
+    },
+    "Outcome": {
+      "enum": [
+        "win",
+        "partial",
+        "fail",
+        "escalated"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "`GET /runs/{run_id}`; `outcome` is set once the run has resolved.",
+  "properties": {
+    "bridge_connected": {
+      "title": "Bridge Connected",
+      "type": "boolean"
+    },
+    "captain": {
+      "$ref": "#/$defs/Captain"
+    },
+    "episode": {
+      "description": "e.g. unlisted",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$",
+      "title": "Episode",
+      "type": "string"
+    },
+    "outcome": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Outcome"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "paused": {
+      "title": "Paused",
+      "type": "boolean"
+    },
+    "run_id": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "seed": {
+      "exclusiveMaximum": 4294967296,
+      "minimum": 0,
+      "title": "Seed",
+      "type": "integer"
+    },
+    "ship_time": {
+      "description": "Ticks since run start",
+      "minimum": 0,
+      "title": "Ship Time",
+      "type": "integer"
+    },
+    "started_at": {
+      "format": "date-time",
+      "title": "Started At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "episode",
+    "seed",
+    "captain",
+    "ship_time",
+    "paused",
+    "bridge_connected",
+    "started_at"
+  ],
+  "title": "RunStatus",
+  "type": "object"
+}

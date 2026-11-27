@@ -1,0 +1,112 @@
+{
+  "$defs": {
+    "ToolError": {
+      "enum": [
+        "unavailable",
+        "timeout",
+        "stale",
+        "partial",
+        "requires_authorization",
+        "not_allowed"
+      ],
+      "title": "ToolError",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "else": {
+        "properties": {
+          "retry_after": {
+            "type": "null"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "retryable": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "retry_after": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "retry_after"
+        ]
+      }
+    },
+    {
+      "if": {
+        "not": {
+          "properties": {
+            "error": {
+              "const": "stale"
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "age": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ],
+  "description": "A structured tool error. `retry_after` (ticks) is present exactly when `retryable`;\n`age` (ticks) only on `stale`. The validator and the schema's `allOf` state the same rules,\nso schema validators agree with Python.",
+  "properties": {
+    "age": {
+      "anyOf": [
+        {
+          "description": "Ticks since run start",
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Age"
+    },
+    "error": {
+      "$ref": "#/$defs/ToolError"
+    },
+    "message": {
+      "maxLength": 120,
+      "title": "Message",
+      "type": "string"
+    },
+    "retry_after": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Retry After"
+    },
+    "retryable": {
+      "title": "Retryable",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "error",
+    "message",
+    "retryable"
+  ],
+  "title": "ToolErrorBody",
+  "type": "object"
+}

@@ -1,0 +1,16 @@
+{
+  "additionalProperties": false,
+  "description": "`run.resume` on `control`: no incident is awaiting the captain.",
+  "properties": {
+    "run_id": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id"
+  ],
+  "title": "RunResume",
+  "type": "object"
+}

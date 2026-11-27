@@ -1,0 +1,66 @@
+{
+  "$defs": {
+    "ReportClaim": {
+      "enum": [
+        "resolved",
+        "escalated",
+        "cannot_resolve"
+      ],
+      "title": "ReportClaim",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The `file_report` payload: the crew's claim, judged by the Ship at the next tick.\nOne report per station per incident.",
+  "properties": {
+    "claim": {
+      "$ref": "#/$defs/ReportClaim"
+    },
+    "incident_id": {
+      "description": "e.g. INC-0042",
+      "pattern": "^INC-\\d{4,}$",
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "prompt_hash": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{8,64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Prompt Hash"
+    },
+    "rationale": {
+      "description": "One line, 160 characters max",
+      "maxLength": 160,
+      "title": "Rationale",
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Sources",
+      "type": "array"
+    },
+    "station": {
+      "description": "e.g. ops",
+      "pattern": "^[a-z][a-z0-9_-]{0,31}$",
+      "title": "Station",
+      "type": "string"
+    }
+  },
+  "required": [
+    "incident_id",
+    "station",
+    "claim",
+    "rationale"
+  ],
+  "title": "Report",
+  "type": "object"
+}
