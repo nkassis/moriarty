@@ -8,7 +8,7 @@ Moriarty is MIT licensed ([LICENSE](../LICENSE)). Current as of M0.
 
 ## Third-party dependencies
 
-Runtime dependencies of `holodeck` and `ship`, from `uv run pip-licenses --from=mixed` against `uv.lock`:
+Runtime dependencies of `holodeck`, `ship` and `cli`, from `uv run pip-licenses --from=mixed` against `uv.lock`:
 
 | Package | License | Notes |
 | --- | --- | --- |
@@ -22,6 +22,10 @@ Runtime dependencies of `holodeck` and `ship`, from `uv run pip-licenses --from=
 | `protobuf` | BSD-3-Clause | |
 | `multidict`, `yarl`, `propcache` | Apache-2.0 | |
 | `idna` | BSD-3-Clause | |
+| `typer`, `rich`, `markdown-it-py`, `mdurl` | MIT | `cli` only |
+| `click` | BSD-3-Clause | `cli` only |
+| `pygments` | BSD-2-Clause | `cli` only |
+| `shellingham` | ISC | `cli` only |
 
 `langgraph` (MIT) arrives with the reference crews; it is not a dependency yet.
 

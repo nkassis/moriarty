@@ -1,0 +1,12 @@
+{
+  "clock": {"mode": "lockstep", "lockstep_budget": 2.0, "max_catchup_ticks": 10},
+  "crew": "crew-xo",
+  "live_stations": ["xo", "ops", "security"],
+  "drive": "local",
+  "captain": "auto",
+  "models": {
+    "triage": {"base_url": "http://host.docker.internal:11434/v1", "model": "gpt-oss:20b"},
+    "summary": {"base_url": "http://host.docker.internal:11434/v1", "model": "gpt-oss:20b"}
+  },
+  "budget": {"incident_tokens": 200000, "run_tokens": 1000000}
+}

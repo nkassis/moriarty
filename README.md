@@ -14,7 +14,8 @@ What exists today: the local infrastructure (RabbitMQ, Postgres with pgvector, a
 uv python install 3.14
 uv sync --all-packages
 cp infra/.env.example infra/.env   # then replace the placeholders
-docker compose -f infra/docker-compose.yml --env-file infra/.env up -d
+uv run moriarty doctor             # what is missing, with the fix for each
+uv run moriarty up                 # the local stack; `moriarty status` and `moriarty down` after
 uv run pytest
 ```
 
