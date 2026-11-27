@@ -599,6 +599,8 @@ Standard technologies throughout; nothing exotic, so the architecture is the int
 
 ```
 moriarty/
+  cli/             # the `moriarty` command: up, down, status, logs, doctor, schema, run
+  profiles/        # run profiles: demo.json, eval.json
   holodeck/        # clock, beat and episode engine (Doyle), director mode, world writer, judge
   ship/
     contract/      # pydantic models -> JSON Schema + TS types; vocabulary table; conformance suite

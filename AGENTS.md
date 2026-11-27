@@ -34,6 +34,22 @@ uv run ruff check . && uv run black --check . && uv run pytest
 
 Run it before declaring anything done. Tests marked `integration` start RabbitMQ or Postgres through testcontainers and need a running Docker daemon. Skip them with `-m "not integration"`.
 
+## CLI
+
+`moriarty` is the `cli/` workspace member, installed by `uv sync --all-packages`. It works from any directory: paths resolve against the repo it was installed from.
+
+```sh
+uv run moriarty doctor                      # one line per check: tools, Ollama, infra/.env, profile, provider key, git hooks
+uv run moriarty doctor --profile profiles/eval.json --drive remote
+uv run moriarty up [profiles/eval.json]     # compose up -d --wait; profile defaults to profiles/demo.json
+uv run moriarty status                      # compose health, then AMQP and Postgres logins
+uv run moriarty logs [service] [-f]
+uv run moriarty down [-v]                   # -v drops volumes
+uv run moriarty schema                      # same as python -m ship.contract.generate
+```
+
+`up` selects the compose profiles `<crew>` and `drive-<drive>` from the run profile; `down`, `logs` and `status` cover every profile. Run profiles live in `profiles/` and are validated by `RunConfig` (`ship/contract/runs.py`). `doctor` reads `OLLAMA_URL` (default `http://localhost:11434`) and, for remote drive, each `key_env` the profile names, from the environment or `infra/.env`. It exits 1 if any check fails.
+
 ## Contract schemas
 
 ```sh
@@ -56,6 +72,8 @@ uv run --env-file infra/.env python -m holodeck.run --mode ratio    # --mode loc
 Both need `AMQP_URL` and `DATABASE_URL` (see `infra/.env.example`); spans go to `OTEL_EXPORTER_OTLP_ENDPOINT`. The relay's queue is declared by either process, so start order does not matter. Traces: Jaeger, service `holodeck`, operation `run`.
 
 ## Local stack
+
+`moriarty up`, `status` and `down` (§ CLI) wrap these.
 
 ```sh
 docker compose -f infra/docker-compose.yml --env-file infra/.env up -d
