@@ -1,0 +1,20 @@
+{
+  "clock": {"mode": "ratio", "ratio": 2.0, "max_catchup_ticks": 10},
+  "crew": "crew-xo",
+  "live_stations": ["xo", "ops", "security"],
+  "drive": "remote",
+  "captain": "hitl",
+  "models": {
+    "triage": {
+      "base_url": "https://api.anthropic.com/v1",
+      "model": "claude-sonnet-5-5",
+      "key_env": "ANTHROPIC_API_KEY"
+    },
+    "summary": {
+      "base_url": "https://api.anthropic.com/v1",
+      "model": "claude-sonnet-5-5",
+      "key_env": "ANTHROPIC_API_KEY"
+    }
+  },
+  "budget": {"incident_tokens": 200000, "run_tokens": 1000000}
+}
